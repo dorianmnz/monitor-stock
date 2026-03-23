@@ -1,11 +1,12 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Monitor de Stock · Mercado Americano</title>
+<title>Monitor de Stock - Mercado Americano</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@700;800;900&display=swap" rel="stylesheet">
@@ -24,8 +25,6 @@
   --gh:   rgba(255,255,255,.16);
   --sh:   rgba(0,0,0,.06);
 }
-
-/* ── MODO OSCURO ── */
 body.dark {
   --txt:  #f0f0f5;
   --txt2: rgba(240,240,245,.45);
@@ -35,347 +34,253 @@ body.dark {
   --gh:   rgba(255,255,255,.10);
   --sh:   rgba(0,0,0,.25);
 }
-
 body.dark .title-blur {
   color: rgba(240,240,245,0.9);
-  text-shadow:
-    0 1px 0 rgba(255,255,255,.2),
-    0 -1px 0 rgba(255,255,255,.1),
-    0 0 20px rgba(255,255,255,.15),
-    0 0 40px rgba(150,180,255,.3),
-    0 2px 8px rgba(100,140,255,.2);
+  text-shadow: 0 1px 0 rgba(255,255,255,.2), 0 0 20px rgba(255,255,255,.15), 0 0 40px rgba(150,180,255,.3);
 }
-
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
-
-body{
-  font-family:var(--font);
-  min-height:100vh;
-  background:linear-gradient(150deg,#cce8ff 0%,#e8ddff 35%,#ffd6e8 65%,#d6ffec 100%);
-  background-attachment:fixed;
-  color:var(--txt);
-  overflow-x:hidden;
-  transition:background .4s ease;
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent }
+html, body { height:100% }
+body {
+  font-family: var(--font);
+  min-height: 100vh;
+  background: linear-gradient(150deg,#cce8ff 0%,#e8ddff 35%,#ffd6e8 65%,#d6ffec 100%);
+  background-attachment: fixed;
+  color: var(--txt);
+  overflow-x: hidden;
+  transition: background .4s ease;
 }
-
-body.dark{
-  background:linear-gradient(150deg,#0a0f1e 0%,#0d0a1e 35%,#1a0a14 65%,#0a1410 100%);
+body.dark {
+  background: linear-gradient(150deg,#0a0f1e 0%,#0d0a1e 35%,#1a0a14 65%,#0a1410 100%);
 }
-
-/* Botón modo oscuro/claro */
-.theme-btn{
-  position:fixed;
-  top:calc(env(safe-area-inset-top,0px) + 16px);
-  right:16px;
-  z-index:999;
-  width:38px;height:38px;
-  border-radius:50%;
-  background:var(--g);
-  border:1px solid var(--gb);
-  backdrop-filter:blur(20px) saturate(180%);
-  -webkit-backdrop-filter:blur(20px) saturate(180%);
-  box-shadow:0 2px 12px var(--sh),inset 0 1px 0 rgba(255,255,255,.5);
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;cursor:pointer;
-  transition:transform .2s,background .3s;
+.theme-btn {
+  position: fixed;
+  top: calc(env(safe-area-inset-top,0px) + 16px);
+  right: 16px; z-index: 999;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--g); border: 1px solid var(--gb);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: 0 2px 12px var(--sh), inset 0 1px 0 rgba(255,255,255,.5);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer;
+  transition: transform .2s, background .3s;
 }
-
-body::before{
-  content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
   background:
-    radial-gradient(ellipse 60% 50% at 10% 10%,rgba(80,160,255,.22) 0%,transparent 65%),
-    radial-gradient(ellipse 55% 60% at 90% 85%,rgba(160,90,255,.18) 0%,transparent 60%),
-    radial-gradient(ellipse 45% 40% at 75% 15%,rgba(80,220,160,.16) 0%,transparent 55%),
-    radial-gradient(ellipse 40% 45% at 30% 80%,rgba(255,120,120,.12) 0%,transparent 55%);
-  animation:orbs 16s ease-in-out infinite alternate;
-  transition:opacity .4s;
+    radial-gradient(ellipse 60% 50% at 10% 10%, rgba(80,160,255,.22) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 60% at 90% 85%, rgba(160,90,255,.18) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 40% at 75% 15%, rgba(80,220,160,.16) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 45% at 30% 80%, rgba(255,120,120,.12) 0%, transparent 55%);
+  animation: orbs 16s ease-in-out infinite alternate;
 }
-body.dark::before{
+body.dark::before {
   background:
-    radial-gradient(ellipse 60% 50% at 10% 10%,rgba(30,80,180,.35) 0%,transparent 65%),
-    radial-gradient(ellipse 55% 60% at 90% 85%,rgba(100,40,180,.28) 0%,transparent 60%),
-    radial-gradient(ellipse 45% 40% at 75% 15%,rgba(20,120,80,.22) 0%,transparent 55%),
-    radial-gradient(ellipse 40% 45% at 30% 80%,rgba(180,30,60,.18) 0%,transparent 55%);
+    radial-gradient(ellipse 60% 50% at 10% 10%, rgba(30,80,180,.35) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 60% at 90% 85%, rgba(100,40,180,.28) 0%, transparent 60%),
+    radial-gradient(ellipse 45% 40% at 75% 15%, rgba(20,120,80,.22) 0%, transparent 55%),
+    radial-gradient(ellipse 40% 45% at 30% 80%, rgba(180,30,60,.18) 0%, transparent 55%);
 }
-@keyframes orbs{to{opacity:.7;transform:scale(1.05)}}
-
-.page{
-  position:relative;z-index:1;
-  max-width:1600px;margin:0 auto;
-  padding:calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 32px);
+@keyframes orbs { to { opacity:.7; transform:scale(1.05) } }
+.page {
+  position: relative; z-index: 1;
+  max-width: 1600px; margin: 0 auto;
+  padding: calc(env(safe-area-inset-top,0px) + 24px) 16px calc(env(safe-area-inset-bottom,0px) + 32px);
 }
-@media(min-width:900px){.page{padding-left:32px;padding-right:32px;padding-top:36px}}
-
-/* ── HEADER ── */
-.header{
-  display:flex;align-items:center;justify-content:space-between;
-  gap:12px;flex-wrap:wrap;margin-bottom:22px;
+@media(min-width:900px){ .page { padding-left:32px; padding-right:32px; padding-top:36px } }
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 22px;
 }
-
-/* Título con efecto blur/frosted */
-.header h1{
-  font-size:clamp(32px,6vw,64px);
-  font-weight:900;
-  letter-spacing:-1.5px;
-  line-height:1;
-  color:var(--txt);
-  position:relative;
-  display:inline-block;
-}
-.header h1::after{
-  content:attr(data-text);
-  position:absolute;
-  inset:0;
-  color:transparent;
-  -webkit-text-stroke:0px transparent;
-  background:inherit;
-  filter:blur(8px);
-  opacity:.35;
-  pointer-events:none;
-  z-index:-1;
-}
-/* Efecto glass sobre el texto */
-.title-wrap{position:relative;display:inline-block}
-.title-blur{
-  font-size:clamp(32px,6vw,64px);
-  font-weight:900;
-  letter-spacing:-1.5px;
-  line-height:1;
-  display:block;
-  color:rgba(28,28,30,0.75);
+.title-blur {
+  font-size: clamp(32px,6vw,64px); font-weight: 900;
+  letter-spacing: -1.5px; line-height: 1; display: block;
+  color: rgba(28,28,30,0.75);
   text-shadow:
-    0 1px 0 rgba(255,255,255,.9),
-    0 -1px 0 rgba(255,255,255,.5),
-    0 0 20px rgba(255,255,255,.6),
-    0 0 40px rgba(200,220,255,.4),
+    0 1px 0 rgba(255,255,255,.9), 0 -1px 0 rgba(255,255,255,.5),
+    0 0 20px rgba(255,255,255,.6), 0 0 40px rgba(200,220,255,.4),
     0 2px 8px rgba(100,140,255,.15);
-  -webkit-font-smoothing:antialiased;
+  -webkit-font-smoothing: antialiased;
 }
-.header p{font-size:12px;color:var(--txt2);margin-top:4px}
-.header-right{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
-
-.chip{
-  display:flex;align-items:center;gap:7px;
-  background:var(--g);border:1px solid var(--gb);
-  backdrop-filter:blur(28px) saturate(180%);
-  -webkit-backdrop-filter:blur(28px) saturate(180%);
-  border-radius:100px;padding:7px 15px;
-  font-size:11px;font-weight:600;white-space:nowrap;
-  box-shadow:0 2px 14px var(--sh),inset 0 1px 0 rgba(255,255,255,.6);
+.header p { font-size:12px; color:var(--txt2); margin-top:4px }
+.header-right { display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end }
+.chip {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--g); border: 1px solid var(--gb);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border-radius: 100px; padding: 7px 15px;
+  font-size: 11px; font-weight: 600; white-space: nowrap;
+  box-shadow: 0 2px 14px var(--sh), inset 0 1px 0 rgba(255,255,255,.6);
 }
-.chip-live{color:var(--ok)}
-.chip-247{color:var(--blue)}
-
-/* Flecha de actualización girando en su eje */
-.arrows{display:flex;align-items:center}
-.spin-icon{
-  color:var(--ok);
-  display:block;
-  animation:spinAxis 1.8s linear infinite;
-  transform-origin:center;
+.chip-live  { color: var(--ok) }
+.chip-247   { color: var(--blue) }
+.chip-sync  { font-size:10px; transition: color .3s }
+.chip-sync.ok   { color: var(--ok) }
+.chip-sync.warn { color: var(--warn) }
+.chip-sync.connecting { color: var(--org) }
+.spin-icon { color: var(--ok); display: block; animation: spinAxis 1.8s linear infinite; }
+@keyframes spinAxis { to { transform: rotate(360deg) } }
+.drag-hint { text-align:center; font-size:10px; color:var(--txt3); margin-bottom:10px }
+.grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px }
+@media(min-width:900px)  { .grid { grid-template-columns:repeat(5,1fr); gap:14px } }
+@media(min-width:1100px) { .grid { grid-template-columns:repeat(6,1fr); gap:16px } }
+.card {
+  background: var(--g); border: 1px solid var(--gb);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  box-shadow: 0 4px 20px var(--sh), inset 0 1px 0 rgba(255,255,255,.6);
+  border-radius: 20px;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 14px 10px 12px; gap: 8px; min-height: 200px;
+  cursor: grab;
+  transition: border-color .3s, box-shadow .3s, transform .2s;
 }
-@keyframes spinAxis{to{transform:rotate(360deg)}}
-
-/* ── CORS WARNING ── */
-.cors-warn{
-  display:none;
-  background:rgba(255,149,0,.1);border:1px solid rgba(255,149,0,.3);
-  border-radius:14px;padding:12px 16px;margin-bottom:14px;
-  font-size:12px;line-height:1.7;color:rgba(28,28,30,.65);
+.card:hover { background:var(--gh); transform:translateY(-2px) }
+.card.available   { border-color:rgba(52,199,89,.4);  box-shadow:0 4px 20px rgba(52,199,89,.13),inset 0 1px 0 rgba(255,255,255,.6) }
+.card.unavailable { border-color:rgba(255,59,48,.3);  box-shadow:0 4px 20px rgba(255,59,48,.09),inset 0 1px 0 rgba(255,255,255,.6) }
+.card.dragging    { opacity:.25; transform:scale(.94); border-style:dashed; cursor:grabbing; pointer-events:none }
+.card.drag-over   { border-color:var(--blue)!important; box-shadow:0 0 0 2px rgba(0,122,255,.35),0 8px 28px rgba(0,122,255,.12)!important; transform:scale(1.04) }
+.card.flip-moving { transition:transform 280ms cubic-bezier(.25,.46,.45,.94)!important }
+@keyframes flashOk {
+  0%   { box-shadow:0 0 0 0 rgba(52,199,89,.6) }
+  60%  { box-shadow:0 0 0 16px rgba(52,199,89,0) }
+  100% { box-shadow:0 4px 20px rgba(52,199,89,.13) }
 }
-.cors-warn b{color:#b36a00}
-
-/* ── DRAG HINT ── */
-.drag-hint{text-align:center;font-size:10px;color:var(--txt3);margin-bottom:10px}
-
-/* ── GRID ── */
-.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-@media(min-width:900px) {.grid{grid-template-columns:repeat(5,1fr);gap:14px}}
-@media(min-width:1100px){.grid{grid-template-columns:repeat(6,1fr);gap:16px}}
-
-/* ── CARD ── */
-.card{
-  background:var(--g);
-  border:1px solid var(--gb);
-  backdrop-filter:blur(28px) saturate(160%);
-  -webkit-backdrop-filter:blur(28px) saturate(160%);
-  box-shadow:0 4px 20px var(--sh),inset 0 1px 0 rgba(255,255,255,.6);
-  border-radius:20px;
-  display:flex;flex-direction:column;align-items:center;
-  padding:14px 10px 12px;gap:8px;min-height:200px;
-  cursor:grab;
-  transition:border-color .3s,box-shadow .3s,transform .2s;
+.card.flash { animation:flashOk .7s ease }
+.card-name {
+  font-size: clamp(15px,1.8vw,22px); font-weight: 800;
+  letter-spacing: -.4px; line-height: 1.2;
+  text-align: center; color: var(--txt);
+  width: 100%; height: 50%;
+  display: flex; align-items: center; justify-content: center;
+  word-break: break-word; hyphens: auto; padding: 2px;
 }
-.card:hover{background:var(--gh);transform:translateY(-2px)}
-.card.available {border-color:rgba(52,199,89,.4); box-shadow:0 4px 20px rgba(52,199,89,.13),inset 0 1px 0 rgba(255,255,255,.6)}
-.card.unavailable{border-color:rgba(255,59,48,.3);  box-shadow:0 4px 20px rgba(255,59,48,.09),inset 0 1px 0 rgba(255,255,255,.6)}
-.card.dragging   {opacity:.25;transform:scale(.94);border-style:dashed;cursor:grabbing;pointer-events:none}
-.card.drag-over  {border-color:var(--blue)!important;box-shadow:0 0 0 2px rgba(0,122,255,.35),0 8px 28px rgba(0,122,255,.12)!important;transform:scale(1.04)}
-.card.flip-moving{transition:transform 280ms cubic-bezier(.25,.46,.45,.94)!important}
-@keyframes flashOk{
-  0%  {box-shadow:0 0 0 0 rgba(52,199,89,.6)}
-  60% {box-shadow:0 0 0 16px rgba(52,199,89,0)}
-  100%{box-shadow:0 4px 20px rgba(52,199,89,.13)}
+.badge {
+  display: flex; align-items: center; gap: 4px;
+  border-radius: 100px; padding: 4px 10px;
+  font-size: 11px; font-weight: 600; white-space: nowrap;
+  transition: background .4s, color .4s;
 }
-.card.flash{animation:flashOk .7s ease}
-
-/* Nombre grande — ocupa la mitad superior */
-.card-name{
-  font-family:var(--font);
-  font-size:clamp(15px,1.8vw,22px);
-  font-weight:800;letter-spacing:-.4px;line-height:1.2;
-  text-align:center;color:var(--txt);
-  width:100%;height:50%;
-  display:flex;align-items:center;justify-content:center;
-  word-break:break-word;hyphens:auto;padding:2px;
+.badge.available   { background:rgba(52,199,89,.14);  color:var(--ok) }
+.badge.unavailable { background:rgba(255,59,48,.12);  color:var(--warn) }
+.badge.checking    { background:rgba(255,149,0,.12);  color:var(--org) }
+.badge.error       { background:rgba(0,0,0,.06);      color:var(--txt3) }
+.bdot { width:5px; height:5px; border-radius:50%; background:currentColor; flex-shrink:0 }
+.badge.available .bdot { animation:blink 1.4s ease-in-out infinite }
+.badge.checking  .bdot { animation:blink .5s  ease-in-out infinite }
+@keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.3;transform:scale(.65)} }
+.bell-sw { display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none; -webkit-user-select:none }
+.bell-off, .bell-on { font-size:15px; line-height:1; transition:opacity .2s }
+.bell-sw.off .bell-off { opacity:1 }
+.bell-sw.off .bell-on  { opacity:.22 }
+.bell-sw.on  .bell-off { opacity:.22 }
+.bell-sw.on  .bell-on  { opacity:1 }
+.bell-track {
+  width:40px; height:24px; border-radius:100px;
+  background:rgba(0,0,0,.12); position:relative;
+  transition:background .22s ease; flex-shrink:0;
 }
-
-/* Badge estado — solo cambia este elemento, sin animación en la card */
-.badge{
-  display:flex;align-items:center;gap:4px;
-  border-radius:100px;padding:4px 10px;
-  font-size:11px;font-weight:600;white-space:nowrap;
-  transition:background .4s,color .4s;
-}
-.badge.available  {background:rgba(52,199,89,.14);color:var(--ok)}
-.badge.unavailable{background:rgba(255,59,48,.12); color:var(--warn)}
-.badge.checking   {background:rgba(255,149,0,.12); color:var(--org)}
-.badge.error      {background:rgba(0,0,0,.06);     color:var(--txt3)}
-.bdot{width:5px;height:5px;border-radius:50%;background:currentColor;flex-shrink:0}
-.badge.available .bdot{animation:blink 1.4s ease-in-out infinite}
-.badge.checking  .bdot{animation:blink .5s  ease-in-out infinite}
-@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.65)}}
-
-/* Bell switch */
-.bell-sw{display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none;-webkit-user-select:none}
-.bell-off,.bell-on{font-size:15px;line-height:1;transition:opacity .2s}
-.bell-sw.off .bell-off{opacity:1}
-.bell-sw.off .bell-on {opacity:.22}
-.bell-sw.on  .bell-off{opacity:.22}
-.bell-sw.on  .bell-on {opacity:1}
-.bell-track{
-  width:40px;height:24px;border-radius:100px;
-  background:rgba(0,0,0,.12);position:relative;
-  transition:background .22s ease;flex-shrink:0;
-}
-.bell-sw.on .bell-track{background:var(--org)}
-.bell-track::after{
-  content:'';position:absolute;top:3px;left:3px;
-  width:18px;height:18px;border-radius:50%;
-  background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.2);
+.bell-sw.on .bell-track { background:var(--org) }
+.bell-track::after {
+  content:''; position:absolute; top:3px; left:3px;
+  width:18px; height:18px; border-radius:50%;
+  background:#fff; box-shadow:0 1px 4px rgba(0,0,0,.2);
   transition:transform .22s cubic-bezier(.34,1.56,.64,1);
 }
-.bell-sw.on .bell-track::after{transform:translateX(16px)}
-
-/* Botón ir al producto — liquid glass más transparente */
-.card-link{
-  display:block;width:100%;
-  background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.25);
-  backdrop-filter:blur(20px) saturate(160%);
-  -webkit-backdrop-filter:blur(20px) saturate(160%);
-  border-radius:10px;padding:7px 0;
-  font-family:var(--font);font-size:11px;font-weight:600;
-  color:var(--blue);text-align:center;text-decoration:none;
+.bell-sw.on .bell-track::after { transform:translateX(16px) }
+.card-link {
+  display:block; width:100%;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.25);
+  backdrop-filter:blur(20px) saturate(160%); -webkit-backdrop-filter:blur(20px) saturate(160%);
+  border-radius:10px; padding:7px 0;
+  font-size:11px; font-weight:600; color:var(--blue);
+  text-align:center; text-decoration:none;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.3);
-  transition:background .15s,transform .12s;
+  transition:background .15s, transform .12s;
 }
-.card-link:hover {background:rgba(255,255,255,.15)}
-.card-link:active{transform:scale(.96)}
-
-/* Drag ghost */
-.drag-ghost{
-  position:fixed;pointer-events:none;z-index:9998;
-  border-radius:20px;
-  background:rgba(255,255,255,.15);
+.card-link:hover  { background:rgba(255,255,255,.15) }
+.card-link:active { transform:scale(.96) }
+.drag-ghost {
+  position:fixed; pointer-events:none; z-index:9998;
+  border-radius:20px; background:rgba(255,255,255,.15);
   border:2px solid rgba(0,122,255,.5);
-  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
-  box-shadow:0 20px 60px rgba(0,0,0,.2);
-  transform:rotate(2deg) scale(1.05);
-  display:flex;align-items:center;justify-content:center;
-  padding:12px;font-family:var(--font);
-  font-size:13px;font-weight:800;text-align:center;color:var(--txt);line-height:1.2;
+  backdrop-filter:blur(28px); -webkit-backdrop-filter:blur(28px);
+  box-shadow:0 20px 60px rgba(0,0,0,.2); transform:rotate(2deg) scale(1.05);
+  display:flex; align-items:center; justify-content:center;
+  padding:12px; font-size:13px; font-weight:800;
+  text-align:center; color:var(--txt); line-height:1.2;
 }
-
-/* Log panel */
-.log-panel{
-  background:var(--g);border:1px solid var(--gb);
-  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
-  border-radius:16px;padding:14px 16px;margin-top:14px;
+.log-panel {
+  background:var(--g); border:1px solid var(--gb);
+  backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+  border-radius:16px; padding:14px 16px; margin-top:14px;
   box-shadow:0 4px 16px var(--sh);
 }
-.log-title{font-size:10px;font-weight:700;letter-spacing:.5px;color:var(--txt2);text-transform:uppercase;margin-bottom:8px}
-.log-list{display:flex;flex-direction:column;gap:5px;max-height:140px;overflow-y:auto}
-.log-item{font-size:10px;color:var(--txt2);display:flex;gap:7px;align-items:baseline;border-bottom:1px solid rgba(0,0,0,.04);padding-bottom:4px}
-.log-item:last-child{border-bottom:none;padding-bottom:0}
-.log-time{color:var(--txt3);font-size:9px;white-space:nowrap;flex-shrink:0}
-.log-empty{font-size:10px;color:var(--txt3);font-style:italic}
-
-/* Botones */
-.btn-wrap{margin-top:14px;display:flex;flex-direction:column;gap:8px;align-items:center}
-.btn-all{
-  width:100%;max-width:300px;
-  display:flex;align-items:center;justify-content:center;gap:8px;
-  background:rgba(255,149,0,.12);border:1px solid rgba(255,149,0,.3);
-  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
-  border-radius:14px;padding:13px;
-  font-family:var(--font);font-size:14px;font-weight:600;color:var(--org);
-  cursor:pointer;box-shadow:0 4px 14px var(--sh);
-  transition:background .15s,transform .14s;
+.log-title { font-size:10px; font-weight:700; letter-spacing:.5px; color:var(--txt2); text-transform:uppercase; margin-bottom:8px }
+.log-list  { display:flex; flex-direction:column; gap:5px; max-height:140px; overflow-y:auto }
+.log-item  { font-size:10px; color:var(--txt2); display:flex; gap:7px; align-items:baseline; border-bottom:1px solid rgba(0,0,0,.04); padding-bottom:4px }
+.log-item:last-child { border-bottom:none; padding-bottom:0 }
+.log-time  { color:var(--txt3); font-size:9px; white-space:nowrap; flex-shrink:0 }
+.log-empty { font-size:10px; color:var(--txt3); font-style:italic }
+.btn-wrap { margin-top:14px; display:flex; flex-direction:column; gap:8px; align-items:center }
+.btn-all {
+  width:100%; max-width:300px;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  background:rgba(255,149,0,.12); border:1px solid rgba(255,149,0,.3);
+  backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+  border-radius:14px; padding:13px;
+  font-size:14px; font-weight:600; color:var(--org);
+  cursor:pointer; box-shadow:0 4px 14px var(--sh);
+  transition:background .15s, transform .14s;
 }
-.btn-all.off{background:rgba(0,0,0,.06);border-color:rgba(0,0,0,.1);color:var(--txt3)}
-.btn-all:active{transform:scale(.97)}
-.btn-refresh{
-  width:100%;max-width:300px;
-  background:var(--g);border:1px solid var(--gb);
-  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
-  border-radius:14px;padding:13px;
-  font-family:var(--font);font-size:14px;font-weight:600;color:var(--blue);
-  cursor:pointer;box-shadow:0 4px 14px var(--sh),inset 0 1px 0 rgba(255,255,255,.6);
-  transition:background .15s,transform .14s,opacity .14s;
+.btn-all.off { background:rgba(0,0,0,.06); border-color:rgba(0,0,0,.1); color:var(--txt3) }
+.btn-all:active { transform:scale(.97) }
+.btn-refresh {
+  width:100%; max-width:300px;
+  background:var(--g); border:1px solid var(--gb);
+  backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+  border-radius:14px; padding:13px;
+  font-size:14px; font-weight:600; color:var(--blue);
+  cursor:pointer; box-shadow:0 4px 14px var(--sh), inset 0 1px 0 rgba(255,255,255,.6);
+  transition:background .15s, transform .14s, opacity .14s;
 }
-.btn-refresh:hover  {background:var(--gh)}
-.btn-refresh:active {transform:scale(.97);opacity:.8}
-.btn-refresh:disabled{opacity:.35;cursor:not-allowed}
-
-/* Toasts */
-.toasts{
-  position:fixed;top:calc(env(safe-area-inset-top,0px)+14px);
-  left:50%;transform:translateX(-50%);
-  z-index:9999;display:flex;flex-direction:column;gap:7px;align-items:center;
-  pointer-events:none;width:calc(100% - 28px);max-width:370px;
+.btn-refresh:hover    { background:var(--gh) }
+.btn-refresh:active   { transform:scale(.97); opacity:.8 }
+.btn-refresh:disabled { opacity:.35; cursor:not-allowed }
+.toasts {
+  position:fixed; top:calc(env(safe-area-inset-top,0px)+14px);
+  left:50%; transform:translateX(-50%);
+  z-index:9999; display:flex; flex-direction:column; gap:7px; align-items:center;
+  pointer-events:none; width:calc(100% - 28px); max-width:370px;
 }
-.toast{
+.toast {
   background:rgba(22,22,26,.9);
-  backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
-  border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:11px 15px;
-  display:flex;align-items:center;gap:9px;
-  font-size:13px;font-weight:500;color:#fff;
+  backdrop-filter:blur(24px); -webkit-backdrop-filter:blur(24px);
+  border:1px solid rgba(255,255,255,.12); border-radius:14px; padding:11px 15px;
+  display:flex; align-items:center; gap:9px;
+  font-size:13px; font-weight:500; color:#fff;
   box-shadow:0 8px 28px rgba(0,0,0,.2);
-  animation:tin .3s cubic-bezier(.34,1.56,.64,1) both;width:100%;
+  animation:tin .3s cubic-bezier(.34,1.56,.64,1) both; width:100%;
 }
-.toast.out{animation:tout .25s ease forwards}
-@keyframes tin {from{opacity:0;transform:translateY(-12px) scale(.92)}to{opacity:1;transform:none}}
-@keyframes tout{to{opacity:0;transform:translateY(-8px)}}
-.toast-icon{font-size:17px;flex-shrink:0}
-
-.footer{text-align:center;font-size:10px;color:var(--txt3);margin-top:14px}
+.toast.out { animation:tout .25s ease forwards }
+@keyframes tin  { from{opacity:0;transform:translateY(-12px) scale(.92)} to{opacity:1;transform:none} }
+@keyframes tout { to{opacity:0;transform:translateY(-8px)} }
+.toast-icon { font-size:17px; flex-shrink:0 }
+.footer { text-align:center; font-size:10px; color:var(--txt3); margin-top:14px }
 </style>
 </head>
 <body>
-<button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Cambiar modo">🌙</button>
+<button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Modo oscuro">&#127769;</button>
 <div class="toasts" id="toasts"></div>
 <div class="page">
-
   <div class="header">
     <div>
-      <div class="title-wrap">
-        <span class="title-blur">Monitor de Stock<br>Mercado Americano</span>
-      </div>
-      <p>mercadoamericano.cl · Revisión cada 5 s</p>
+      <span class="title-blur">Monitor de Stock<br>Mercado Americano</span>
+      <p>mercadoamericano.cl &middot; Revision cada 8 s</p>
     </div>
     <div class="header-right">
+      <div class="chip chip-sync connecting" id="sync-chip">&#9679; Conectando...</div>
       <div class="chip chip-247">24/7</div>
       <div class="chip chip-live">
         <svg class="spin-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -386,157 +291,213 @@ body.dark::before{
       </div>
     </div>
   </div>
-
-  <div class="cors-warn" id="cors-warn">
-    <b>⚠ Error de conexión</b> — Sube este archivo a <b>netlify.com/drop</b> y ábrelo desde el link generado.
-  </div>
-
-  <div class="drag-hint">✦ Mantén presionada una tarjeta para reordenar</div>
+  <div class="drag-hint">&#10022; Manten presionada una tarjeta para reordenar</div>
   <div class="grid" id="grid"></div>
-
   <div class="log-panel">
-    <div class="log-title">📋 Registro de disponibilidad</div>
-    <div class="log-list" id="log-list"><div class="log-empty">Sin alertas aún</div></div>
+    <div class="log-title">&#128203; Registro de disponibilidad</div>
+    <div class="log-list" id="log-list"><div class="log-empty">Sin alertas aun</div></div>
   </div>
-
   <div class="btn-wrap">
-    <button class="btn-all" id="btn-all" onclick="toggleAllAlerts()">🔔 Desactivar todas las alertas</button>
-    <button class="btn-refresh" id="btn-ref" onclick="checkAll()">↻ Revisar ahora</button>
+    <button class="btn-all" id="btn-all" onclick="toggleAllAlerts()">&#128276; Desactivar todas las alertas</button>
+    <button class="btn-refresh" id="btn-ref" onclick="checkAll()">&#8635; Revisar ahora</button>
   </div>
-  <div class="footer">Activa 🔔 para recibir alertas en pantalla y Telegram cuando haya disponibilidad</div>
+  <div class="footer">Activa &#128276; para recibir alertas &middot; Sincronizado en tiempo real entre dispositivos</div>
 </div>
 
-<script>
-// ═══════════════════════════════════════
-// CONFIG
-// ═══════════════════════════════════════
-const TG_TOKEN   = '8287364225:AAHcJQh1Ms3fK13jrTwgjbJE1u35SpLQFeo';
-const TG_CHAT_ID = '5461350867';
-const TG_URL     = 'https://api.telegram.org/bot' + TG_TOKEN + '/sendMessage';
-const INTERVAL   = 5;
-const THEME_KEY  = 'ma_theme_v1';
+<script type="module">
+import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-// ── THEME TOGGLE ──
-function toggleTheme() {
-  const isDark = document.body.classList.toggle('dark');
-  document.getElementById('theme-btn').textContent = isDark ? '☀️' : '🌙';
-  try { localStorage.setItem(THEME_KEY, isDark ? 'dark' : 'light'); } catch {}
-}
+// ---- CONFIG FIREBASE ----
+const FB_CONFIG = {
+  apiKey:            "AIzaSyAv9h_GGSE44cJ_MOurLGLegDtJPdkDrmc",
+  authDomain:        "monitor-stock.firebaseapp.com",
+  projectId:         "monitor-stock",
+  storageBucket:     "monitor-stock.firebasestorage.app",
+  messagingSenderId: "882469416373",
+  appId:             "1:882469416373:web:3f78ef9214c2705074bdfc"
+};
 
-function loadTheme() {
-  try {
-    const saved = localStorage.getItem(THEME_KEY);
-    if (saved === 'dark') {
-      document.body.classList.add('dark');
-      document.getElementById('theme-btn').textContent = '☀️';
-    }
-  } catch {}
-}
-const ALERTS_KEY  = 'ma_alerts_v1';
-const NOTIF_KEY   = 'ma_notified_v1';
-const LOG_KEY     = 'ma_log_v1';
-const HIST_LEN    = 20;
+const fbApp = initializeApp(FB_CONFIG);
+const db    = getFirestore(fbApp);
+const DBREF = doc(db, "config", "shared");
+
+// ---- CONSTANTES ----
+const INTERVAL = 8;
+const HIST_LEN = 20;
+const THEME_KEY = "ma_theme_v1";
 
 const PRODUCTS = [
-  {id:'parka',   name:'Parka Corriente Invierno',            url:'https://mercadoamericano.cl/parka-corriente-invierno'},
-  {id:'jeans',   name:'Blue Jeans Corriente',                url:'https://mercadoamericano.cl/blue-jeans-corriente-toda-temporada'},
-  {id:'casaca',  name:'Casaca Corriente Invierno',           url:'https://mercadoamericano.cl/casaca-corriente-invierno'},
-  {id:'buzo',    name:'Buzo Corriente',                      url:'https://mercadoamericano.cl/buzo-hombre-mujer-corriente-toda-temporada'},
-  {id:'poleron', name:'Polerón Canguro Corriente',           url:'https://mercadoamericano.cl/poleron-canguro-corriente-toda-temporada'},
-  {id:'paso',    name:'Paso Corriente Invierno',             url:'https://mercadoamericano.cl/paso-corriente-invierno'},
-  {id:'polera',  name:'Polera Manga Larga Hombre Corriente', url:'https://mercadoamericano.cl/polera-manga-larga-corriente-invierno'},
-  {id:'sweater', name:'Sweater Algodón Corriente',           url:'https://mercadoamericano.cl/sweater-algodon-corriente-toda-temporada'},
-  {id:'camisa',   name:'Camisa Manga Larga Corriente',        url:'https://mercadoamericano.cl/camisa-manga-larga-corriente-toda-temporada'},
-  {id:'franela',  name:'Camisa Franela Corriente',            url:'https://mercadoamericano.cl/camisa-lana-franela-corriente-invierno'},
-  {id:'blusa',    name:'Blusa Manga Larga Extra Corriente',   url:'https://mercadoamericano.cl/blusa-manga-larga-extra-especial-toda-temporada'},
-  {id:'polcorta', name:'Polera Hombre Manga Corta Corriente', url:'https://mercadoamericano.cl/polera-manga-corta-corriente-verano'},
-  {id:'polpolar', name:'Polerón Polar Corriente',             url:'https://mercadoamericano.cl/poleron-polar-corriente-invierno'},
+  {id:"parka",    name:"Parka Corriente Invierno",            url:"https://mercadoamericano.cl/parka-corriente-invierno"},
+  {id:"jeans",    name:"Blue Jeans Corriente",                url:"https://mercadoamericano.cl/blue-jeans-corriente-toda-temporada"},
+  {id:"casaca",   name:"Casaca Corriente Invierno",           url:"https://mercadoamericano.cl/casaca-corriente-invierno"},
+  {id:"buzo",     name:"Buzo Corriente",                      url:"https://mercadoamericano.cl/buzo-hombre-mujer-corriente-toda-temporada"},
+  {id:"poleron",  name:"Poleron Canguro Corriente",           url:"https://mercadoamericano.cl/poleron-canguro-corriente-toda-temporada"},
+  {id:"paso",     name:"Paso Corriente Invierno",             url:"https://mercadoamericano.cl/paso-corriente-invierno"},
+  {id:"polera",   name:"Polera Manga Larga Hombre Corriente", url:"https://mercadoamericano.cl/polera-manga-larga-corriente-invierno"},
+  {id:"sweater",  name:"Sweater Algodon Corriente",           url:"https://mercadoamericano.cl/sweater-algodon-corriente-toda-temporada"},
+  {id:"camisa",   name:"Camisa Manga Larga Corriente",        url:"https://mercadoamericano.cl/camisa-manga-larga-corriente-toda-temporada"},
+  {id:"franela",  name:"Camisa Franela Corriente",            url:"https://mercadoamericano.cl/camisa-lana-franela-corriente-invierno"},
+  {id:"blusa",    name:"Blusa Manga Larga Extra Corriente",   url:"https://mercadoamericano.cl/blusa-manga-larga-extra-especial-toda-temporada"},
+  {id:"polcorta", name:"Polera Manga Corta Corriente",        url:"https://mercadoamericano.cl/polera-manga-corta-corriente-verano"},
+  {id:"polpolar", name:"Poleron Polar Corriente",             url:"https://mercadoamericano.cl/poleron-polar-corriente-invierno"}
 ];
 
 const PROXIES = [
-  u => 'https://corsproxy.io/?' + encodeURIComponent(u),
-  u => 'https://api.allorigins.win/get?url=' + encodeURIComponent(u),
-  u => 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u),
-  u => 'https://thingproxy.freeboard.io/fetch/' + u,
+  u => "https://corsproxy.io/?" + encodeURIComponent(u),
+  u => "https://api.allorigins.win/get?url=" + encodeURIComponent(u),
+  u => "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(u),
+  u => "https://thingproxy.freeboard.io/fetch/" + u
 ];
 
-// ═══════════════════════════════════════
-// ESTADO
-// ═══════════════════════════════════════
+const LABELS = {available:"Disponible", unavailable:"Agotado", checking:"Revisando...", error:"Error"};
+
+// ---- ESTADO ----
 const state  = {};
 const alerts = {};
 const log    = [];
 let countdown = INTERVAL, timer = null;
+let fbReady = false, ignoreFB = false;
 
 PRODUCTS.forEach(p => {
-  state[p.id]  = {status:'checking', lastNotified:null};
+  state[p.id]  = {status:"checking", lastNotified:null};
   alerts[p.id] = true;
 });
 
-function loadAlerts() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(ALERTS_KEY) || '{}');
-    PRODUCTS.forEach(p => { if (saved[p.id] !== undefined) alerts[p.id] = saved[p.id]; });
-  } catch {}
+// ---- SYNC CHIP ----
+function setSyncChip(mode) {
+  const el = document.getElementById("sync-chip");
+  if (!el) return;
+  el.className = "chip chip-sync " + mode;
+  if (mode === "ok")          el.innerHTML = "&#9679; Sincronizado";
+  if (mode === "warn")        el.innerHTML = "&#9679; Sin conexion";
+  if (mode === "connecting")  el.innerHTML = "&#9679; Conectando...";
 }
 
-function saveAlerts() {
-  try { localStorage.setItem(ALERTS_KEY, JSON.stringify(alerts)); } catch {}
+// ---- FIREBASE SAVE ----
+async function fbSave() {
+  if (!fbReady) return;
+  try {
+    ignoreFB = true;
+    await setDoc(DBREF, {
+      alerts: {...alerts},
+      order:  PRODUCTS.map(p => p.id),
+      log:    log.slice(0, HIST_LEN)
+    });
+    setTimeout(() => { ignoreFB = false; }, 1200);
+  } catch(e) {
+    ignoreFB = false;
+    console.warn("Firebase save:", e);
+  }
 }
 
-// Persistir lastNotified para no re-notificar al reabrir la página
-function loadNotified() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(NOTIF_KEY) || '{}');
-    PRODUCTS.forEach(p => { if (saved[p.id]) state[p.id].lastNotified = saved[p.id]; });
-  } catch {}
-}
-
-function saveNotified() {
-  try {
-    const obj = {};
-    PRODUCTS.forEach(p => { obj[p.id] = state[p.id].lastNotified; });
-    localStorage.setItem(NOTIF_KEY, JSON.stringify(obj));
-  } catch {}
-}
-
-// ═══════════════════════════════════════
-// ORDEN PERSISTENTE
-// ═══════════════════════════════════════
-function loadOrder() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(ORDER_KEY) || '[]');
-    if (!saved.length) return;
+// ---- FIREBASE APPLY ----
+function fbApply(data) {
+  if (data.alerts) {
+    PRODUCTS.forEach(p => {
+      if (data.alerts[p.id] !== undefined) alerts[p.id] = data.alerts[p.id];
+    });
+  }
+  if (data.order && data.order.length) {
     const reordered = [];
-    saved.forEach(id => { const p = PRODUCTS.find(x => x.id === id); if (p) reordered.push(p); });
-    PRODUCTS.forEach(p => { if (!reordered.find(x => x.id === p.id)) reordered.push(p); });
+    data.order.forEach(id => {
+      const p = PRODUCTS.find(x => x.id === id);
+      if (p) reordered.push(p);
+    });
+    PRODUCTS.forEach(p => {
+      if (!reordered.find(x => x.id === p.id)) reordered.push(p);
+    });
     PRODUCTS.length = 0;
     reordered.forEach(p => PRODUCTS.push(p));
-  } catch {}
+  }
+  if (data.log) {
+    log.length = 0;
+    data.log.forEach(e => log.push(e));
+  }
+  renderCards();
+  renderLog();
+  syncBells();
 }
 
-function saveOrder() {
-  try { localStorage.setItem(ORDER_KEY, JSON.stringify(PRODUCTS.map(p => p.id))); } catch {}
+// ---- FIREBASE INIT ----
+async function fbInit() {
+  try {
+    const snap = await getDoc(DBREF);
+    if (snap.exists()) fbApply(snap.data());
+    setSyncChip("ok");
+    fbReady = true;
+    onSnapshot(DBREF, snap => {
+      if (ignoreFB) return;
+      if (snap.exists()) fbApply(snap.data());
+    }, err => {
+      console.warn("Firebase listener:", err);
+      setSyncChip("warn");
+    });
+  } catch(e) {
+    console.warn("Firebase init:", e);
+    setSyncChip("warn");
+    fbReady = true;
+  }
 }
 
-// ═══════════════════════════════════════
-// FETCH
-// ═══════════════════════════════════════
-function fetchViaProxy(proxyFn, url) {
+// ---- THEME ----
+window.toggleTheme = function() {
+  const dark = document.body.classList.toggle("dark");
+  document.getElementById("theme-btn").innerHTML = dark ? "&#9728;&#65039;" : "&#127769;";
+  try { localStorage.setItem(THEME_KEY, dark ? "dark" : "light"); } catch(e) {}
+};
+(function loadTheme(){
+  try {
+    if (localStorage.getItem(THEME_KEY) === "dark") {
+      document.body.classList.add("dark");
+      document.getElementById("theme-btn").innerHTML = "&#9728;&#65039;";
+    }
+  } catch(e) {}
+})();
+
+// ---- LOG ----
+function addLog(icon, msg) {
+  const time = new Date().toLocaleTimeString("es-CL", {hour:"2-digit", minute:"2-digit"});
+  if (log.length && log[0].msg === msg) return;
+  log.unshift({icon, msg, time});
+  if (log.length > HIST_LEN) log.pop();
+  renderLog();
+  fbSave();
+}
+function renderLog() {
+  const el = document.getElementById("log-list");
+  if (!el) return;
+  if (!log.length) { el.innerHTML = '<div class="log-empty">Sin alertas aun</div>'; return; }
+  el.innerHTML = log.map(e =>
+    `<div class="log-item"><span>${e.icon}</span><span class="log-time">${e.time}</span><span>${e.msg}</span></div>`
+  ).join("");
+}
+
+// ---- TOAST ----
+function showToast(icon, msg, ms = 3500) {
+  const w = document.getElementById("toasts");
+  const t = document.createElement("div");
+  t.className = "toast";
+  t.innerHTML = `<span class="toast-icon">${icon}</span><span>${msg}</span>`;
+  w.appendChild(t);
+  setTimeout(() => { t.classList.add("out"); setTimeout(() => t.remove(), 260); }, ms);
+}
+
+// ---- FETCH ----
+function fetchViaProxy(fn, url) {
   return new Promise((resolve, reject) => {
     const ctrl = new AbortController();
-    const t = setTimeout(() => { ctrl.abort(); reject('timeout'); }, 4000);
-    fetch(proxyFn(url), {signal: ctrl.signal})
+    const t = setTimeout(() => { ctrl.abort(); reject("timeout"); }, 4000);
+    fetch(fn(url), {signal: ctrl.signal})
       .then(r => { clearTimeout(t); if (!r.ok) throw 0; return r.text(); })
       .then(txt => {
         let html = txt;
-        try { const j = JSON.parse(txt); if (j.contents) html = j.contents; } catch {}
-        if (html.length > 800) resolve(html); else reject('short');
+        try { const j = JSON.parse(txt); if (j.contents) html = j.contents; } catch(e) {}
+        if (html.length > 800) resolve(html); else reject("short");
       })
       .catch(e => { clearTimeout(t); reject(e); });
   });
 }
-
 function fetchHTML(url) {
   return new Promise(resolve => {
     let done = false, failed = 0;
@@ -548,367 +509,220 @@ function fetchHTML(url) {
   });
 }
 
-// ═══════════════════════════════════════
-// DETECCIÓN
-// ═══════════════════════════════════════
+// ---- DETECT ----
 function detect(html) {
   const blocks = html.match(/<script[^>]*application\/ld\+json[^>]*>([\s\S]*?)<\/script>/gi) || [];
   for (const b of blocks) {
     try {
-      const j = JSON.parse(b.replace(/<[^>]+>/g, ''));
-      const list = [j.availability, j.offers?.availability,
-        ...(Array.isArray(j.offers) ? j.offers.map(o => o?.availability) : [])].filter(Boolean);
+      const j = JSON.parse(b.replace(/<[^>]+>/g, ""));
+      const list = [j.availability, j.offers?.availability].filter(Boolean);
+      if (Array.isArray(j.offers)) j.offers.forEach(o => { if (o?.availability) list.push(o.availability); });
       for (const a of list) {
-        if (a.includes('InStock'))    return true;
-        if (a.includes('OutOfStock')) return false;
+        if (a.includes("InStock"))    return true;
+        if (a.includes("OutOfStock")) return false;
       }
-    } catch {}
+    } catch(e) {}
   }
-  if (html.includes('schema.org/InStock'))    return true;
-  if (html.includes('schema.org/OutOfStock')) return false;
+  if (html.includes("schema.org/InStock"))    return true;
+  if (html.includes("schema.org/OutOfStock")) return false;
   if (html.includes('"InStock"'))             return true;
   if (html.includes('"OutOfStock"'))          return false;
-  if (html.includes('Agotado'))               return false;
-  if (html.includes('Comprar ahora'))         return true;
+  if (html.includes("Agotado"))               return false;
+  if (html.includes("Comprar ahora"))         return true;
   return null;
 }
 
-// ═══════════════════════════════════════
-// TELEGRAM
-// ═══════════════════════════════════════
-function sendTelegram(text) {
-  fetch(TG_URL, {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({chat_id: TG_CHAT_ID, text, parse_mode: 'Markdown', disable_web_page_preview: true})
-  })
-  .then(r => r.json())
-  .then(j => { if (!j.ok) console.warn('Telegram:', j.description); })
-  .catch(e => console.warn('Telegram error:', e));
-}
-
-// ═══════════════════════════════════════
-// LOG — solo disponibilidades, sin repetir
-// ═══════════════════════════════════════
-function loadLog() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(LOG_KEY) || '[]');
-    saved.forEach(e => log.push(e));
-    renderLog();
-  } catch {}
-}
-
-function saveLog() {
-  try { localStorage.setItem(LOG_KEY, JSON.stringify(log)); } catch {}
-}
-
-function addLog(icon, msg) {
-  const time = new Date().toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'});
-  if (log.length && log[0].msg === msg) return;
-  log.unshift({icon, msg, time});
-  if (log.length > HIST_LEN) log.pop();
-  saveLog();
-  renderLog();
-}
-
-function renderLog() {
-  const el = document.getElementById('log-list');
-  if (!el) return;
-  if (!log.length) { el.innerHTML = '<div class="log-empty">Sin alertas aún</div>'; return; }
-  el.innerHTML = log.map(e =>
-    '<div class="log-item"><span>' + e.icon + '</span><span class="log-time">' + e.time + '</span><span>' + e.msg + '</span></div>'
-  ).join('');
-}
-
-// ═══════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════
-function showToast(icon, msg, ms) {
-  ms = ms || 3500;
-  const w = document.getElementById('toasts');
-  const t = document.createElement('div');
-  t.className = 'toast';
-  t.innerHTML = '<span class="toast-icon">' + icon + '</span><span>' + msg + '</span>';
-  w.appendChild(t);
-  setTimeout(function() { t.classList.add('out'); setTimeout(function() { t.remove(); }, 260); }, ms);
-}
-
-// ═══════════════════════════════════════
-// RENDER — solo actualiza el badge, no recrea la card
-// ═══════════════════════════════════════
+// ---- RENDER ----
 function renderCards() {
-  const LABELS = {available:'Disponible', unavailable:'Agotado', checking:'Revisando…', error:'Error'};
-  document.getElementById('grid').innerHTML = PRODUCTS.map((p, i) => {
+  document.getElementById("grid").innerHTML = PRODUCTS.map((p, i) => {
     const s = state[p.id];
     const a = alerts[p.id];
-    return '<div class="card ' + s.status + '" id="card-' + p.id + '" style="animation-delay:' + (i*45) + 'ms">' +
-      '<div class="card-name">' + p.name + '</div>' +
-      '<div class="badge ' + s.status + '" id="badge-' + p.id + '"><div class="bdot"></div>' + (LABELS[s.status] || '—') + '</div>' +
-      '<div class="bell-sw ' + (a ? 'on' : 'off') + '" onclick="toggleAlert(\'' + p.id + '\')">' +
-        '<span class="bell-off">🔕</span>' +
-        '<div class="bell-track"></div>' +
-        '<span class="bell-on">🔔</span>' +
-      '</div>' +
-      '<a class="card-link" href="' + p.url + '" target="_blank" rel="noopener">Ir al producto ↗</a>' +
-    '</div>';
-  }).join('');
+    return `<div class="card ${s.status}" id="card-${p.id}" style="animation-delay:${i*45}ms">
+      <div class="card-name">${p.name}</div>
+      <div class="badge ${s.status}" id="badge-${p.id}"><div class="bdot"></div>${LABELS[s.status]||"--"}</div>
+      <div class="bell-sw ${a?"on":"off"}" onclick="toggleAlert('${p.id}')">
+        <span class="bell-off">&#128277;</span>
+        <div class="bell-track"></div>
+        <span class="bell-on">&#128276;</span>
+      </div>
+      <a class="card-link" href="${p.url}" target="_blank" rel="noopener">Ir al producto &#8599;</a>
+    </div>`;
+  }).join("");
   initDrag();
 }
-
-// Actualiza solo el badge sin tocar el resto de la card
 function updateBadge(id) {
-  const LABELS = {available:'Disponible', unavailable:'Agotado', checking:'Revisando…', error:'Error'};
   const s = state[id];
-  const badge = document.getElementById('badge-' + id);
-  const card  = document.getElementById('card-' + id);
-  if (badge) {
-    badge.className = 'badge ' + s.status;
-    badge.innerHTML = '<div class="bdot"></div>' + (LABELS[s.status] || '—');
-  }
-  if (card) {
-    card.className = 'card ' + s.status;
+  const badge = document.getElementById("badge-"+id);
+  const card  = document.getElementById("card-"+id);
+  if (badge) { badge.className = "badge "+s.status; badge.innerHTML = `<div class="bdot"></div>${LABELS[s.status]||"--"}`; }
+  if (card)  { card.className = "card "+s.status; }
+}
+function syncBells() {
+  PRODUCTS.forEach(p => {
+    const sw = document.querySelector(`#card-${p.id} .bell-sw`);
+    if (sw) sw.className = "bell-sw " + (alerts[p.id] ? "on" : "off");
+  });
+  const btn = document.getElementById("btn-all");
+  if (btn) {
+    const allOn = PRODUCTS.every(p => alerts[p.id]);
+    btn.className = allOn ? "btn-all" : "btn-all off";
+    btn.innerHTML = allOn ? "&#128276; Desactivar todas las alertas" : "&#128277; Activar todas las alertas";
   }
 }
 
-// ═══════════════════════════════════════
-// TOGGLE ALERTA
-// ═══════════════════════════════════════
-function toggleAlert(id) {
+// ---- TOGGLE ALERT ----
+window.toggleAlert = function(id) {
   alerts[id] = !alerts[id];
-  saveAlerts();
-  const sw = document.querySelector('#card-' + id + ' .bell-sw');
-  if (sw) sw.className = 'bell-sw ' + (alerts[id] ? 'on' : 'off');
+  const sw = document.querySelector(`#card-${id} .bell-sw`);
+  if (sw) sw.className = "bell-sw " + (alerts[id] ? "on" : "off");
   const p = PRODUCTS.find(x => x.id === id);
-  if (alerts[id]) {
-    showToast('🔔', 'Alertas activadas: ' + p.name, 2000);
-    // Si ya está disponible, notifica inmediatamente
-    if (state[id].status === 'available') {
-      sendTelegram('🔔 *Alerta activada*\n\n📦 *' + p.name + '* ya está disponible\n🔗 [Ver producto](' + p.url + ')\n\n_mercadoamericano.cl_');
-      addLog('🟢', p.name + ' — disponible');
-    }
-  } else {
-    showToast('🔕', 'Alertas desactivadas: ' + p.name, 2000);
-  }
-}
+  showToast(alerts[id] ? "&#128276;" : "&#128277;",
+    (alerts[id] ? "Alertas activadas: " : "Alertas desactivadas: ") + p.name, 2000);
+  fbSave();
+};
 
-function toggleAllAlerts() {
+window.toggleAllAlerts = function() {
   const allOn = PRODUCTS.every(p => alerts[p.id]);
   PRODUCTS.forEach(p => { alerts[p.id] = !allOn; });
-  saveAlerts();
-  PRODUCTS.forEach(p => {
-    const sw = document.querySelector('#card-' + p.id + ' .bell-sw');
-    if (sw) sw.className = 'bell-sw ' + (alerts[p.id] ? 'on' : 'off');
-  });
-  const btn = document.getElementById('btn-all');
-  if (btn) {
-    btn.className   = allOn ? 'btn-all off' : 'btn-all';
-    btn.textContent = allOn ? '🔕 Activar todas las alertas' : '🔔 Desactivar todas las alertas';
-  }
-  showToast(!allOn ? '🔔' : '🔕', !allOn ? 'Todas las alertas activadas' : 'Todas las alertas desactivadas', 2000);
-}
+  syncBells();
+  showToast(!allOn ? "&#128276;" : "&#128277;",
+    !allOn ? "Todas las alertas activadas" : "Todas las alertas desactivadas", 2000);
+  fbSave();
+};
 
-// ═══════════════════════════════════════
-// CHECK PRODUCTO
-// ═══════════════════════════════════════
+// ---- CHECK ----
 async function checkProduct(p) {
   const s    = state[p.id];
   const prev = s.status;
   const html = await fetchHTML(p.url);
-
-  if (!html) {
-    s.status = 'error';
-    document.getElementById('cors-warn').style.display = 'block';
-    updateBadge(p.id);
-    return;
-  }
-
-  document.getElementById('cors-warn').style.display = 'none';
+  if (!html) { s.status = "error"; updateBadge(p.id); return; }
   const ok = detect(html);
-  if (ok === null) { s.status = 'error'; updateBadge(p.id); return; }
-
-  s.status = ok ? 'available' : 'unavailable';
-  updateBadge(p.id); // solo actualiza el badge, no anima toda la card
-
-  // Flash solo cuando pasa a disponible
-  if (ok && prev !== 'available') {
-    const card = document.getElementById('card-' + p.id);
-    if (card) { card.classList.remove('flash'); void card.offsetWidth; card.classList.add('flash'); }
+  if (ok === null) { s.status = "error"; updateBadge(p.id); return; }
+  s.status = ok ? "available" : "unavailable";
+  updateBadge(p.id);
+  if (ok && prev !== "available") {
+    const card = document.getElementById("card-"+p.id);
+    if (card) { card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash"); }
   }
-
-  // Notificar solo cuando cambia a disponible y no se ha notificado ya
-  if (ok && s.lastNotified !== 'available') {
-    if (alerts[p.id]) {
-      // Solo mostrar toast y enviar Telegram si NO es la primera carga
-      const isFirstLoad = prev === 'checking';
-      if (!isFirstLoad) {
-        showToast('🟢', '<b>' + p.name + '</b> — ¡Disponible!', 5000);
-        sendTelegram('🟢 *' + p.name + '* disponible!\n\n🔗 [Ver producto](' + p.url + ')\n\n_mercadoamericano.cl_');
-        addLog('🟢', p.name + ' — disponible');
-      }
+  if (ok && s.lastNotified !== "available") {
+    if (prev !== "checking" && alerts[p.id]) {
+      showToast("&#128994;", `<b>${p.name}</b> disponible!`, 5000);
+      addLog("&#128994;", p.name + " -- disponible");
     }
-    s.lastNotified = 'available';
-    saveNotified();
+    s.lastNotified = "available";
   }
-
-  if (!ok && s.lastNotified === 'available') {
-    s.lastNotified = 'unavailable';
-    saveNotified();
+  if (!ok && s.lastNotified === "available") {
+    s.lastNotified = "unavailable";
   }
 }
 
-// ═══════════════════════════════════════
-// CHECK ALL
-// ═══════════════════════════════════════
-async function checkAll() {
-  const btn = document.getElementById('btn-ref');
+window.checkAll = async function() {
+  const btn = document.getElementById("btn-ref");
   btn.disabled = true;
   await Promise.all(PRODUCTS.map(p => checkProduct(p)));
   btn.disabled = false;
   resetCountdown();
-}
+};
 
-// ═══════════════════════════════════════
-// COUNTDOWN
-// ═══════════════════════════════════════
 function resetCountdown() {
   countdown = INTERVAL;
   clearInterval(timer);
-  timer = setInterval(function() {
+  timer = setInterval(() => {
     countdown--;
-    if (countdown <= 0) { clearInterval(timer); checkAll(); }
+    if (countdown <= 0) { clearInterval(timer); window.checkAll(); }
   }, 1000);
 }
 
-// ═══════════════════════════════════════
-// DRAG & DROP con FLIP animation
-// ═══════════════════════════════════════
+// ---- DRAG & DROP ----
 let dragId = null, ghost = null, ghostOX = 0, ghostOY = 0;
-
 function makeGhost(card, name) {
-  ghost = document.createElement('div');
-  ghost.className = 'drag-ghost';
+  ghost = document.createElement("div");
+  ghost.className = "drag-ghost";
   ghost.textContent = name;
   const r = card.getBoundingClientRect();
-  Object.assign(ghost.style, {width:r.width+'px', height:r.height+'px', left:r.left+'px', top:(r.top+scrollY)+'px'});
+  Object.assign(ghost.style, {width:r.width+"px", height:r.height+"px", left:r.left+"px", top:(r.top+scrollY)+"px"});
   document.body.appendChild(ghost);
 }
-function moveGhost(x, y) {
-  if (ghost) { ghost.style.left = (x-ghostOX)+'px'; ghost.style.top = (y-ghostOY+scrollY)+'px'; }
-}
+function moveGhost(x, y) { if (ghost) { ghost.style.left=(x-ghostOX)+"px"; ghost.style.top=(y-ghostOY+scrollY)+"px"; } }
 function killGhost() { if (ghost) { ghost.remove(); ghost = null; } }
-
 function getPositions() {
   const m = new Map();
-  document.querySelectorAll('.card').forEach(c => m.set(c.id, c.getBoundingClientRect()));
+  document.querySelectorAll(".card").forEach(c => m.set(c.id, c.getBoundingClientRect()));
   return m;
 }
-
 function flipAnimate(before) {
-  document.querySelectorAll('.card').forEach(card => {
-    const b = before.get(card.id);
-    if (!b) return;
+  document.querySelectorAll(".card").forEach(card => {
+    const b = before.get(card.id); if (!b) return;
     const a = card.getBoundingClientRect();
     const dx = b.left-a.left, dy = b.top-a.top;
     if (Math.abs(dx)<1 && Math.abs(dy)<1) return;
-    card.style.transition = 'none';
-    card.style.transform  = 'translate('+dx+'px,'+dy+'px)';
-    requestAnimationFrame(function() { requestAnimationFrame(function() {
-      card.classList.add('flip-moving');
-      card.style.transform = '';
-      card.addEventListener('transitionend', function() {
-        card.classList.remove('flip-moving'); card.style.transition = '';
+    card.style.transition = "none";
+    card.style.transform  = `translate(${dx}px,${dy}px)`;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      card.classList.add("flip-moving");
+      card.style.transform = "";
+      card.addEventListener("transitionend", () => {
+        card.classList.remove("flip-moving"); card.style.transition = "";
       }, {once:true});
-    }); });
+    }));
   });
 }
-
 function swapAndAnimate(idA, idB) {
   const iA = PRODUCTS.findIndex(p => p.id === idA);
   const iB = PRODUCTS.findIndex(p => p.id === idB);
-  if (iA < 0 || iB < 0 || iA === iB) return;
+  if (iA<0||iB<0||iA===iB) return;
   const before = getPositions();
   [PRODUCTS[iA], PRODUCTS[iB]] = [PRODUCTS[iB], PRODUCTS[iA]];
-  saveOrder();
-  document.querySelectorAll('.card').forEach(c => c.style.animation = 'none');
+  document.querySelectorAll(".card").forEach(c => c.style.animation = "none");
   renderCards();
   flipAnimate(before);
+  fbSave();
 }
-
 function initDrag() {
-  document.querySelectorAll('.card').forEach(card => {
-    const pid  = card.id.replace('card-', '');
-    const name = PRODUCTS.find(p => p.id === pid)?.name || '';
-
+  document.querySelectorAll(".card").forEach(card => {
+    const pid  = card.id.replace("card-","");
+    const name = PRODUCTS.find(p => p.id===pid)?.name || "";
     card.draggable = true;
-    card.ondragstart = function(e) {
+    card.ondragstart = e => {
       dragId = pid;
-      const r = card.getBoundingClientRect();
-      ghostOX = e.clientX-r.left; ghostOY = e.clientY-r.top;
-      const blank = document.createElement('canvas'); blank.width = blank.height = 1;
-      e.dataTransfer.setDragImage(blank, 0, 0);
-      e.dataTransfer.effectAllowed = 'move';
-      makeGhost(card, name);
-      setTimeout(function() { card.classList.add('dragging'); }, 10);
+      const r = card.getBoundingClientRect(); ghostOX=e.clientX-r.left; ghostOY=e.clientY-r.top;
+      const blank = document.createElement("canvas"); blank.width=blank.height=1;
+      e.dataTransfer.setDragImage(blank,0,0); e.dataTransfer.effectAllowed="move";
+      makeGhost(card,name); setTimeout(() => card.classList.add("dragging"),10);
     };
-    card.ondrag = function(e) { if (e.clientX||e.clientY) moveGhost(e.clientX, e.clientY); };
-    card.ondragend = function() {
-      card.classList.remove('dragging'); killGhost();
-      document.querySelectorAll('.card').forEach(c => c.classList.remove('drag-over'));
-    };
-    card.ondragover = function(e) {
-      e.preventDefault(); e.dataTransfer.dropEffect = 'move';
-      document.querySelectorAll('.card').forEach(c => c.classList.remove('drag-over'));
-      if (pid !== dragId) card.classList.add('drag-over');
-    };
-    card.ondragleave = function() { card.classList.remove('drag-over'); };
-    card.ondrop = function(e) {
-      e.preventDefault(); card.classList.remove('drag-over');
-      if (dragId && dragId !== pid) swapAndAnimate(dragId, pid);
-    };
-
-    let touchTimer = null, touching = false;
-    card.addEventListener('touchstart', function(e) {
-      const t = e.touches[0], r = card.getBoundingClientRect();
-      ghostOX = t.clientX-r.left; ghostOY = t.clientY-r.top;
-      touchTimer = setTimeout(function() {
-        touching = true; dragId = pid;
-        card.classList.add('dragging'); makeGhost(card, name);
-        navigator.vibrate && navigator.vibrate([40,20,40]);
-      }, 400);
-    }, {passive:true});
-    card.addEventListener('touchmove', function(e) {
-      if (!touching) { clearTimeout(touchTimer); return; }
-      e.preventDefault();
-      const t = e.touches[0]; moveGhost(t.clientX, t.clientY);
-      const target = document.elementFromPoint(t.clientX, t.clientY)?.closest('.card');
-      document.querySelectorAll('.card').forEach(c => c.classList.remove('drag-over'));
-      if (target && target !== card) target.classList.add('drag-over');
-    }, {passive:false});
-    card.addEventListener('touchend', function(e) {
-      clearTimeout(touchTimer);
-      if (!touching) return;
-      touching = false; card.classList.remove('dragging'); killGhost();
-      const t = e.changedTouches[0];
-      const target = document.elementFromPoint(t.clientX, t.clientY)?.closest('.card');
-      document.querySelectorAll('.card').forEach(c => c.classList.remove('drag-over'));
-      if (target) { const tid = target.id.replace('card-',''); if (dragId&&dragId!==tid) swapAndAnimate(dragId,tid); }
+    card.ondrag    = e => { if(e.clientX||e.clientY) moveGhost(e.clientX,e.clientY); };
+    card.ondragend = () => { card.classList.remove("dragging"); killGhost(); document.querySelectorAll(".card").forEach(c=>c.classList.remove("drag-over")); };
+    card.ondragover = e => { e.preventDefault(); e.dataTransfer.dropEffect="move"; document.querySelectorAll(".card").forEach(c=>c.classList.remove("drag-over")); if(pid!==dragId) card.classList.add("drag-over"); };
+    card.ondragleave = () => card.classList.remove("drag-over");
+    card.ondrop = e => { e.preventDefault(); card.classList.remove("drag-over"); if(dragId&&dragId!==pid) swapAndAnimate(dragId,pid); };
+    let touchTimer=null, touching=false;
+    card.addEventListener("touchstart", e => {
+      const t=e.touches[0], r=card.getBoundingClientRect(); ghostOX=t.clientX-r.left; ghostOY=t.clientY-r.top;
+      touchTimer=setTimeout(() => { touching=true; dragId=pid; card.classList.add("dragging"); makeGhost(card,name); navigator.vibrate&&navigator.vibrate([40,20,40]); },400);
+    },{passive:true});
+    card.addEventListener("touchmove", e => {
+      if(!touching){ clearTimeout(touchTimer); return; } e.preventDefault();
+      const t=e.touches[0]; moveGhost(t.clientX,t.clientY);
+      const target=document.elementFromPoint(t.clientX,t.clientY)?.closest(".card");
+      document.querySelectorAll(".card").forEach(c=>c.classList.remove("drag-over"));
+      if(target&&target!==card) target.classList.add("drag-over");
+    },{passive:false});
+    card.addEventListener("touchend", e => {
+      clearTimeout(touchTimer); if(!touching) return;
+      touching=false; card.classList.remove("dragging"); killGhost();
+      const t=e.changedTouches[0];
+      const target=document.elementFromPoint(t.clientX,t.clientY)?.closest(".card");
+      document.querySelectorAll(".card").forEach(c=>c.classList.remove("drag-over"));
+      if(target){ const tid=target.id.replace("card-",""); if(dragId&&dragId!==tid) swapAndAnimate(dragId,tid); }
     });
-    card.addEventListener('touchcancel', function() {
-      clearTimeout(touchTimer); touching = false; card.classList.remove('dragging'); killGhost();
-    });
+    card.addEventListener("touchcancel", () => { clearTimeout(touchTimer); touching=false; card.classList.remove("dragging"); killGhost(); });
   });
 }
 
-// ═══════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════
-loadTheme();
-loadOrder();
-loadAlerts();
-loadNotified();
-loadLog();
+// ---- INIT ----
 renderCards();
-checkAll();
+fbInit().then(() => window.checkAll());
 </script>
+
 </body>
 </html>
