@@ -5,7 +5,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
 import re
-from concurrent.futures import ThreadPoolExecutor # Para ejecución en paralelo
+from concurrent.futures import ThreadPoolExecutor
 
 # --- CONFIGURACIÓN DE SEGURIDAD (FIREBASE) ---
 if 'FIREBASE_KEY' in os.environ:
@@ -33,17 +33,23 @@ TOKEN = os.environ.get('TG_TOKEN')
 CHAT_ID = os.environ.get('TG_CHAT_ID')
 
 def send_telegram(mensaje):
-    if not TOKEN or not CHAT_ID:
-        print("⚠️ Telegram no configurado")
+    # Validación anti-fantasmas: Si el mensaje es muy corto o solo un punto, ignorar.
+    if not TOKEN or not CHAT_ID or len(mensaje.strip()) < 2:
         return
+        
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-    payload = {"chat_id": CHAT_ID, "text": mensaje, "parse_mode": "HTML"}
+    payload = {
+        "chat_id": CHAT_ID, 
+        "text": mensaje, 
+        "parse_mode": "HTML",
+        "disable_web_page_preview": False  # Esto permite la previsualización del link
+    }
     try:
         requests.post(url, json=payload, timeout=10)
     except Exception as e:
         print(f"❌ Error enviando a Telegram: {e}")
 
-# --- LISTA DE PRODUCTOS ORIGINAL ---
+# --- LISTA DE PRODUCTOS ---
 PRODUCTS = [
     {"id":"parka", "name":"Parka Corriente", "url":"https://mercadoamericano.cl/parka-corriente-invierno"},
     {"id":"jeans", "name":"Blue Jeans", "url":"https://mercadoamericano.cl/blue-jeans-corriente-toda-temporada"},
@@ -61,14 +67,12 @@ PRODUCTS = [
 ]
 
 def fetch_product_status(p, old_stocks):
-    """Función individual para ser ejecutada en hilos"""
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
     try:
         res = requests.get(p['url'], headers=headers, timeout=15)
         html = res.text
         status = "unavailable"
         
-        # Lógica de detección original
         stock_match = re.search(r'product-stock__text-exact">(\d+)\s*unidades', html)
         if stock_match:
             cantidad = int(stock_match.group(1))
@@ -91,27 +95,33 @@ def check_stock():
         old_stocks = data.get('estados_stock', {})
         new_stocks = {}
 
-        # Ejecución concurrente de las peticiones HTTP
         with ThreadPoolExecutor(max_workers=15) as executor:
             results = list(executor.map(lambda p: fetch_product_status(p, old_stocks), PRODUCTS))
 
         for p_id, status, p_name, p_url in results:
             new_stocks[p_id] = status
-            # Notificación de Telegram si cambia de agotado a disponible
             if status == "available" and old_stocks.get(p_id) != "available":
                 if alerts.get(p_id) is True:
-                    msg = f"🔔 <b>¡STOCK DETECTADO!</b> 🔔\n\n<b>Producto:</b> {p_name}\n<b>Link:</b> <a href='{p_url}'>Ir a la tienda</a>"
+                    # MENSAJE PERSONALIZADO CON ICONOS Y ESTILO
+                    msg = (
+                        f"🛍️ <b>¡STOCK DETECTADO!</b>\n"
+                        f"──────────────────\n"
+                        f"📦 <b>Producto:</b> {p_name}\n"
+                        f"✅ <b>Estado:</b> Disponible ahora\n\n"
+                        f"🔗 <a href='{p_url}'>COMPRAR AHORA</a>\n"
+                        f"──────────────────"
+                    )
                     send_telegram(msg)
-                    print(f"🚀 Telegram enviado para {p_name}")
+                    print(f"🚀 Notificación enviada: {p_name}")
 
         doc_ref.set({
             'estados_stock': new_stocks,
             'last_run': datetime.now().isoformat()
         }, merge=True)
-        print("✅ Firebase actualizado.")
+        print("✅ Proceso completado.")
 
     except Exception as e:
-        print(f"❌ Error crítico: {e}")
+        print(f"❌ Error: {e}")
 
 if __name__ == "__main__":
     check_stock()
