@@ -2,7 +2,7 @@ name: Monitor Stock Mercado Americano
 
 on:
   schedule:
-    - cron: '*/6 * * * *' 
+    - cron: '*/5 * * * *' # Frecuencia máxima permitida por GitHub
   workflow_dispatch: 
 
 jobs:
@@ -20,8 +20,13 @@ jobs:
       - name: Instalar Librerias
         run: pip install firebase-admin requests
 
-      - name: Ejecutar Monitor
-        # ESTA PARTE ES LA CLAVE:
+      - name: Ejecutar Monitor (Rafaga Doble)
         env:
           FIREBASE_KEY: ${{ secrets.FIREBASE_KEY }}
-        run: python monitor.py
+          TG_TOKEN: ${{ secrets.TG_TOKEN }}
+          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
+        run: |
+          python monitor.py
+          echo "Esperando 30 segundos para la segunda revisión..."
+          sleep 30
+          python monitor.py
