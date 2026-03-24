@@ -76,24 +76,30 @@ def check_stock():
                 res = requests.get(p['url'], headers=headers, timeout=20)
                 html = res.text
                 
-                # --- LÓGICA DE DETECCIÓN MEJORADA ---
-                status = "unavailable" # Por defecto asumimos agotado
+                # --- LÓGICA DE DETECCIÓN POR NÚMERO EXACTO ---
+                status = "unavailable" # Asumimos agotado por seguridad
                 
-                # 1. Prioridad: Buscar el número exacto de unidades
-                # Este Regex ignora espacios y captura solo el número
-                stock_match = re.search(r'product-stock__text-exact[^>]*>\s*(\d+)', html)
+                # Buscamos la etiqueta que me pasaste
+                # Esta expresión regular busca el número que esté ANTES de la palabra "unidades"
+                stock_match = re.search(r'product-stock__text-exact">(\d+)\s*unidades', html)
                 
                 if stock_match:
                     cantidad = int(stock_match.group(1))
-                    print(f"📦 {p['name']}: {cantidad} unidades encontradas.")
+                    print(f"📦 {p['name']}: {cantidad} unidades detectadas.")
+                    
+                    # REGLA DE ORO: Solo disponible si hay más de 0
                     if cantidad > 0:
                         status = "available"
+                    else:
+                        status = "unavailable"
                 
-                # 2. Respaldo: Si no hay número, buscamos etiquetas de texto clásicas
-                elif 'Disponible en stock' in html or 'schema.org/InStock' in html:
-                    # Solo si NO dice explícitamente Agotado en el mensaje principal
-                    if not ('product-message__title' in html and 'Agotado' in html):
-                        status = "available"
+                # RESPALDO: Si no encuentra el número, buscamos la palabra "Agotado"
+                elif "product-message__title" in html and "Agotado" in html:
+                    status = "unavailable"
+                
+                # RESPALDO 2: Si no hay número ni mensaje de agotado, usamos el schema estándar
+                else:
+                    status = "available" if "schema.org/InStock" in html else "unavailable"
 
                 new_stocks[p['id']] = status
 
