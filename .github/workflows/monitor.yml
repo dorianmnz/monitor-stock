@@ -1,29 +1,27 @@
-name: Monitor Mercado Americano
+name: Monitor Stock Mercado Americano
 
 on:
   schedule:
-    # Se ejecuta cada 6 minutos (12:00 a 23:54 UTC)
-    - cron: '*/6 12-23 * * *'
-  workflow_dispatch:
+    - cron: '*/6 * * * *' 
+  workflow_dispatch: 
 
 jobs:
-  monitor:
+  run-monitor:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - name: Descargar codigo
+        uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Instalar Python
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.9'
 
-      - name: Instalar dependencias
-        run: pip install requests firebase-admin
+      - name: Instalar Librerias
+        run: pip install firebase-admin requests
 
-      - name: Ejecutar monitor
+      - name: Ejecutar Monitor
+        # ESTA PARTE ES LA CLAVE:
         env:
-          TG_TOKEN: ${{ secrets.TG_TOKEN }}
-          TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
-        # El script tiene un loop interno de 5 minutos
+          FIREBASE_KEY: ${{ secrets.FIREBASE_KEY }}
         run: python monitor.py
