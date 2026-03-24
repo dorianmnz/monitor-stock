@@ -1,124 +1,95 @@
-import requests
-import re
-import json
 import os
-import time
-import random
-from datetime import datetime
+import json
+import requests
 import firebase_admin
 from firebase_admin import credentials, firestore
+from datetime import datetime
 
-# --- CONFIGURACIÓN ---
-TG_TOKEN = os.environ.get('TG_TOKEN')
-TG_CHAT_ID = os.environ.get('TG_CHAT_ID')
+# --- CONFIGURACIÓN DE SEGURIDAD ---
+# Intentamos leer primero desde los Secrets de GitHub
+if 'FIREBASE_KEY' in os.environ:
+    try:
+        # Cargamos el JSON desde la variable de entorno
+        key_dict = json.loads(os.environ['FIREBASE_KEY'])
+        cred = credentials.Certificate(key_dict)
+        print("✅ Conectado usando GitHub Secrets.")
+    except Exception as e:
+        print(f"❌ Error procesando el Secret FIREBASE_KEY: {e}")
+        exit(1) # Detener si el secreto está mal formado
+else:
+    # Si NO hay secreto (ejemplo: en tu PC local), busca el archivo
+    if os.path.exists('serviceAccountKey.json'):
+        cred = credentials.Certificate('serviceAccountKey.json')
+        print("🏠 Conectado usando archivo local.")
+    else:
+        print("❌ ERROR: No se encontró FIREBASE_KEY en Secrets ni el archivo serviceAccountKey.json")
+        exit(1)
 
-# Inicializar Firebase (Asegúrate de que serviceAccountKey.json esté en el repo)
+# Inicializar Firebase
 if not firebase_admin._apps:
-    cred = credentials.Certificate("serviceAccountKey.json")
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 doc_ref = db.collection('config').document('shared')
 
+# --- LISTA DE PRODUCTOS ---
 PRODUCTS = [
-    {'id': 'parka',    'name': 'Parka Corriente Invierno',            'url': 'https://mercadoamericano.cl/parka-corriente-invierno'},
-    {'id': 'jeans',    'name': 'Blue Jeans Corriente',                'url': 'https://mercadoamericano.cl/blue-jeans-corriente-toda-temporada'},
-    {'id': 'casaca',   'name': 'Casaca Corriente Invierno',           'url': 'https://mercadoamericano.cl/casaca-corriente-invierno'},
-    {'id': 'buzo',     'name': 'Buzo Corriente',                      'url': 'https://mercadoamericano.cl/buzo-hombre-mujer-corriente-toda-temporada'},
-    {'id': 'poleron',  'name': 'Poleron Canguro Corriente',           'url': 'https://mercadoamericano.cl/poleron-canguro-corriente-toda-temporada'},
-    {'id': 'paso',     'name': 'Paso Corriente Invierno',             'url': 'https://mercadoamericano.cl/paso-corriente-invierno'},
-    {'id': 'polera',   'name': 'Polera Manga Larga Hombre Corriente', 'url': 'https://mercadoamericano.cl/polera-manga-larga-corriente-invierno'},
-    {'id': 'sweater',  'name': 'Sweater Algodon Corriente',           'url': 'https://mercadoamericano.cl/sweater-algodon-corriente-toda-temporada'},
-    {'id': 'camisa',   'name': 'Camisa Manga Larga Corriente',        'url': 'https://mercadoamericano.cl/camisa-manga-larga-corriente-toda-temporada'},
-    {'id': 'franela',  'name': 'Camisa Franela Corriente',            'url': 'https://mercadoamericano.cl/camisa-lana-franela-corriente-invierno'},
-    {'id': 'blusa',    'name': 'Blusa Manga Larga Extra Corriente',   'url': 'https://mercadoamericano.cl/blusa-manga-larga-extra-especial-toda-temporada'},
-    {'id': 'polcorta', 'name': 'Polera Hombre Manga Corta Corriente', 'url': 'https://mercadoamericano.cl/polera-manga-corta-corriente-verano'},
-    {'id': 'polpolar', 'name': 'Poleron Polar Corriente',             'url': 'https://mercadoamericano.cl/poleron-polar-corriente-invierno'},
+    {"id":"parka", "name":"Parka Corriente", "url":"https://mercadoamericano.cl/parka-corriente-invierno"},
+    {"id":"jeans", "name":"Blue Jeans", "url":"https://mercadoamericano.cl/blue-jeans-corriente-toda-temporada"},
+    {"id":"casaca", "name":"Casaca Corriente", "url":"https://mercadoamericano.cl/casaca-corriente-invierno"},
+    {"id":"buzo", "name":"Buzo Corriente", "url":"https://mercadoamericano.cl/buzo-hombre-mujer-corriente-toda-temporada"},
+    {"id":"poleron", "name":"Polerón Canguro", "url":"https://mercadoamericano.cl/poleron-canguro-corriente-toda-temporada"},
+    {"id":"paso", "name":"Paso Corriente", "url":"https://mercadoamericano.cl/paso-corriente-invierno"},
+    {"id":"polera", "name":"Polera Manga Larga", "url":"https://mercadoamericano.cl/polera-manga-larga-corriente-invierno"},
+    {"id":"sweater", "name":"Sweater Algodón", "url":"https://mercadoamericano.cl/sweater-algodon-corriente-toda-temporada"},
+    {"id":"camisa", "name":"Camisa Manga Larga", "url":"https://mercadoamericano.cl/camisa-manga-larga-corriente-toda-temporada"},
+    {"id":"franela", "name":"Camisa Franela", "url":"https://mercadoamericano.cl/camisa-lana-franela-corriente-invierno"},
+    {"id":"blusa", "name":"Blusa Manga Larga", "url":"https://mercadoamericano.cl/blusa-manga-larga-extra-especial-toda-temporada"},
+    {"id":"polcorta", "name":"Polera Manga Corta", "url":"https://mercadoamericano.cl/polera-manga-corta-corriente-verano"},
+    {"id":"polpolar", "name":"Polerón Polar", "url":"https://mercadoamericano.cl/poleron-polar-corriente-invierno"}
 ]
 
-UA_LIST = [
-    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
-    'Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.6261.105 Mobile Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
-]
-
-def send_telegram(text):
-    if not text or text == ".": return
-    try:
-        url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-        payload = {'chat_id': TG_CHAT_ID, 'text': text, 'parse_mode': 'Markdown', 'disable_web_page_preview': True}
-        requests.post(url, json=payload, timeout=10)
-    except Exception as e:
-        print(f'Error Telegram: {e}')
-
-def is_available(html):
-    # Tu lógica original de detección (JSON-LD + Strings)
-    blocks = re.findall(r'<script[^>]*application/ld\+json[^>]*>([\s\S]*?)</script>', html, re.IGNORECASE)
-    for block in blocks:
-        try:
-            j = json.loads(block)
-            candidates = []
-            if isinstance(j.get('availability'), str): candidates.append(j['availability'])
-            offers = j.get('offers')
-            if isinstance(offers, dict): candidates.append(offers.get('availability', ''))
-            elif isinstance(offers, list):
-                for o in offers:
-                    if isinstance(o, dict): candidates.append(o.get('availability', ''))
-            for a in candidates:
-                if 'InStock' in a: return True
-                if 'OutOfStock' in a: return False
-        except: pass
+def check_stock():
+    print(f"--- Inicio de escaneo: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ---")
     
-    if 'schema.org/InStock' in html or 'Comprar ahora' in html: return True
-    if 'Agotado' in html or 'schema.org/OutOfStock' in html: return False
-    return None
-
-def ejecutar_ciclo():
-    print(f'--- Ciclo {datetime.now().strftime("%H:%M:%S")} ---')
-    
-    # Leer configuración desde Firebase
+    # Obtener datos actuales de Firebase para comparar
     try:
-        fb_data = doc_ref.get().to_dict() or {}
-        alertas_activas = fb_data.get('alerts', {})
-        estados_stock = fb_data.get('estados_stock', {})
+        doc = doc_ref.get()
+        data = doc.to_dict() if doc.exists else {}
     except Exception as e:
-        print(f"Error Firebase: {e}")
+        print(f"❌ Error al leer Firebase: {e}")
         return
 
-    cambios = False
+    alerts = data.get('alerts', {})
+    old_stocks = data.get('estados_stock', {})
+    new_stocks = {}
 
-    for product in PRODUCTS:
-        pid = product['id']
-        # SOLO procesar si la campana está en ON en la web
-        if alertas_activas.get(pid) is True:
-            headers = {'User-Agent': random.choice(UA_LIST), 'Accept-Language': 'es-CL,es;q=0.9'}
-            try:
-                # Delay pequeño aleatorio para camuflaje
-                time.sleep(random.uniform(0.5, 1.2))
-                r = requests.get(product['url'], headers=headers, timeout=15)
-                available = is_available(r.text)
-                prev_status = estados_stock.get(pid)
+    for p in PRODUCTS:
+        try:
+            # Petición a la web con un User-Agent para evitar bloqueos
+            res = requests.get(p['url'], timeout=15, headers={'User-Agent': 'Mozilla/5.0'})
+            # Detectar stock (ajustado a la web de Mercado Americano)
+            is_in_stock = "schema.org/InStock" in res.text or "Comprar ahora" in res.text
+            status = "available" if is_in_stock else "unavailable"
+            new_stocks[p['id']] = status
+            
+            print(f"🔎 {p['name']}: {status}")
 
-                # Notificar SOLO si cambia de Agotado -> Disponible
-                if available is True and prev_status != 'available':
-                    send_telegram(f"🟢 *{product['name']}* disponible!\n\n🔗 [Comprar ahora]({product['url']})")
-                    print(f"!!! Notificación enviada: {pid}")
-                
-                # Actualizar memoria
-                nuevo_status = 'available' if available else 'unavailable'
-                if prev_status != nuevo_status:
-                    estados_stock[pid] = nuevo_status
-                    cambios = True
-            except:
-                continue
+        except Exception as e:
+            print(f"⚠️ Error en {p['name']}: {e}")
+            new_stocks[p['id']] = old_stocks.get(p['id'], "unavailable")
 
-    if cambios:
-        doc_ref.update({'estados_stock': estados_stock})
+    # Guardar en Firebase (Usamos set con merge para no borrar las alertas)
+    try:
+        doc_ref.set({
+            'estados_stock': new_stocks,
+            'last_run': datetime.now().isoformat()
+        }, merge=True)
+        print("✅ Firebase actualizado correctamente.")
+    except Exception as e:
+        print(f"❌ Error al guardar en Firebase: {e}")
+    
+    print("--- Proceso completado ---")
 
-# BUCLE DE 5 MINUTOS (Para GitHub Actions)
-start_run = time.time()
-while (time.time() - start_run) < 280: # Corre por 4.6 min
-    ejecutar_ciclo()
-    wait = random.randint(10, 20)
-    print(f"Esperando {wait}s...")
-    time.sleep(wait)
+if __name__ == "__main__":
+    check_stock()
