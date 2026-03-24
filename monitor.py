@@ -5,6 +5,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
 import re
+from concurrent.futures import ThreadPoolExecutor # Para ejecución en paralelo
 
 # --- CONFIGURACIÓN DE SEGURIDAD (FIREBASE) ---
 if 'FIREBASE_KEY' in os.environ:
@@ -42,7 +43,7 @@ def send_telegram(mensaje):
     except Exception as e:
         print(f"❌ Error enviando a Telegram: {e}")
 
-# --- LISTA DE PRODUCTOS (Mantenemos tus URLs originales) ---
+# --- LISTA DE PRODUCTOS ORIGINAL ---
 PRODUCTS = [
     {"id":"parka", "name":"Parka Corriente", "url":"https://mercadoamericano.cl/parka-corriente-invierno"},
     {"id":"jeans", "name":"Blue Jeans", "url":"https://mercadoamericano.cl/blue-jeans-corriente-toda-temporada"},
@@ -59,68 +60,58 @@ PRODUCTS = [
     {"id":"polpolar", "name":"Polerón Polar", "url":"https://mercadoamericano.cl/poleron-polar-corriente-invierno"}
 ]
 
-def check_stock():
-    print(f"--- Escaneo Iniciado: {datetime.now().strftime('%H:%M:%S')} ---")
+def fetch_product_status(p, old_stocks):
+    """Función individual para ser ejecutada en hilos"""
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+    try:
+        res = requests.get(p['url'], headers=headers, timeout=15)
+        html = res.text
+        status = "unavailable"
+        
+        # Lógica de detección original
+        stock_match = re.search(r'product-stock__text-exact">(\d+)\s*unidades', html)
+        if stock_match:
+            cantidad = int(stock_match.group(1))
+            status = "available" if cantidad > 0 else "unavailable"
+        elif "product-message__title" in html and "Agotado" in html:
+            status = "unavailable"
+        else:
+            status = "available" if "schema.org/InStock" in html else "unavailable"
+            
+        return p['id'], status, p['name'], p['url']
+    except Exception:
+        return p['id'], old_stocks.get(p['id'], "unavailable"), p['name'], p['url']
 
+def check_stock():
+    print(f"--- Escaneo Paralelo: {datetime.now().strftime('%H:%M:%S')} ---")
     try:
         doc = doc_ref.get()
         data = doc.to_dict() if doc.exists else {}
-        
         alerts = data.get('alerts', {})
         old_stocks = data.get('estados_stock', {})
         new_stocks = {}
 
-        for p in PRODUCTS:
-            try:
-                res = requests.get(p['url'], headers=headers, timeout=20)
-                html = res.text
-                
-                # --- LÓGICA DE DETECCIÓN POR NÚMERO EXACTO ---
-                status = "unavailable" # Asumimos agotado por seguridad
-                
-                # Buscamos la etiqueta que me pasaste
-                stock_match = re.search(r'product-stock__text-exact">(\d+)\s*unidades', html)
-                
-                if stock_match:
-                    cantidad = int(stock_match.group(1))
-                    print(f"📦 {p['name']}: {cantidad} unidades detectadas.")
-                    
-                    if cantidad > 0:
-                        status = "available"
-                    else:
-                        status = "unavailable"
-                
-                elif "product-message__title" in html and "Agotado" in html:
-                    status = "unavailable"
-                
-                else:
-                    status = "available" if "schema.org/InStock" in html else "unavailable"
+        # Ejecución concurrente de las peticiones HTTP
+        with ThreadPoolExecutor(max_workers=15) as executor:
+            results = list(executor.map(lambda p: fetch_product_status(p, old_stocks), PRODUCTS))
 
-                new_stocks[p['id']] = status
-
-                # --- LÓGICA DE TELEGRAM ---
-                if status == "available" and old_stocks.get(p['id']) != "available":
-                    if alerts.get(p['id']) is True:
-                        msg = f"🔔 <b>¡STOCK DETECTADO!</b> 🔔\n\n<b>Producto:</b> {p['name']}\n<b>Link:</b> <a href='{p['url']}'>Ir a la tienda</a>"
-                        send_telegram(msg)
-                        print(f"🚀 Telegram enviado para {p['name']}")
-
-            except Exception as e:
-                print(f"⚠️ Error escaneando {p['name']}: {e}")
-                new_stocks[p['id']] = old_stocks.get(p['id'], "unavailable")
+        for p_id, status, p_name, p_url in results:
+            new_stocks[p_id] = status
+            # Notificación de Telegram si cambia de agotado a disponible
+            if status == "available" and old_stocks.get(p_id) != "available":
+                if alerts.get(p_id) is True:
+                    msg = f"🔔 <b>¡STOCK DETECTADO!</b> 🔔\n\n<b>Producto:</b> {p_name}\n<b>Link:</b> <a href='{p_url}'>Ir a la tienda</a>"
+                    send_telegram(msg)
+                    print(f"🚀 Telegram enviado para {p_name}")
 
         doc_ref.set({
             'estados_stock': new_stocks,
             'last_run': datetime.now().isoformat()
         }, merge=True)
-        print("✅ Firebase actualizado correctamente.")
+        print("✅ Firebase actualizado.")
 
     except Exception as e:
-        print(f"❌ Error crítico en el proceso: {e}")
+        print(f"❌ Error crítico: {e}")
 
 if __name__ == "__main__":
-    # --- PRUEBA DE TELEGRAM (Puedes borrar esta línea después de recibir el mensaje) ---
-    send_telegram("🚀 <b>¡Conexión Exitosa!</b>\nTu monitor de Mercado Americano está vinculado correctamente a este chat.")
-    
     check_stock()
