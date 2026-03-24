@@ -2,13 +2,23 @@ import requests
 import re
 import json
 import os
+import time
+import random
 from datetime import datetime
+import firebase_admin
+from firebase_admin import credentials, firestore
 
-TG_TOKEN = os.environ['TG_TOKEN']
-TG_CHAT_ID = os.environ['TG_CHAT_ID']
-STATE_FILE = 'state.json'
-HOUR_START = 9
-HOUR_END = 20
+# --- CONFIGURACIÓN ---
+TG_TOKEN = os.environ.get('TG_TOKEN')
+TG_CHAT_ID = os.environ.get('TG_CHAT_ID')
+
+# Inicializar Firebase (Asegúrate de que serviceAccountKey.json esté en el repo)
+if not firebase_admin._apps:
+    cred = credentials.Certificate("serviceAccountKey.json")
+    firebase_admin.initialize_app(cred)
+
+db = firestore.client()
+doc_ref = db.collection('config').document('shared')
 
 PRODUCTS = [
     {'id': 'parka',    'name': 'Parka Corriente Invierno',            'url': 'https://mercadoamericano.cl/parka-corriente-invierno'},
@@ -26,119 +36,89 @@ PRODUCTS = [
     {'id': 'polpolar', 'name': 'Poleron Polar Corriente',             'url': 'https://mercadoamericano.cl/poleron-polar-corriente-invierno'},
 ]
 
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-    'Accept-Language': 'es-CL,es;q=0.9',
-    'Connection': 'keep-alive',
-}
-
+UA_LIST = [
+    'Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1',
+    'Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.6261.105 Mobile Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+]
 
 def send_telegram(text):
+    if not text or text == ".": return
     try:
-        r = requests.post(
-            'https://api.telegram.org/bot' + TG_TOKEN + '/sendMessage',
-            json={'chat_id': TG_CHAT_ID, 'text': text, 'parse_mode': 'Markdown', 'disable_web_page_preview': True},
-            timeout=10
-        )
-        print('Telegram OK' if r.ok else 'Telegram error: ' + r.text)
+        url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
+        payload = {'chat_id': TG_CHAT_ID, 'text': text, 'parse_mode': 'Markdown', 'disable_web_page_preview': True}
+        requests.post(url, json=payload, timeout=10)
     except Exception as e:
-        print('Telegram error: ' + str(e))
-
+        print(f'Error Telegram: {e}')
 
 def is_available(html):
+    # Tu lógica original de detección (JSON-LD + Strings)
     blocks = re.findall(r'<script[^>]*application/ld\+json[^>]*>([\s\S]*?)</script>', html, re.IGNORECASE)
     for block in blocks:
         try:
             j = json.loads(block)
             candidates = []
-            if isinstance(j.get('availability'), str):
-                candidates.append(j['availability'])
-            if isinstance(j.get('offers'), dict):
-                candidates.append(j['offers'].get('availability', ''))
-            elif isinstance(j.get('offers'), list):
-                for o in j['offers']:
-                    if isinstance(o, dict):
-                        candidates.append(o.get('availability', ''))
+            if isinstance(j.get('availability'), str): candidates.append(j['availability'])
+            offers = j.get('offers')
+            if isinstance(offers, dict): candidates.append(offers.get('availability', ''))
+            elif isinstance(offers, list):
+                for o in offers:
+                    if isinstance(o, dict): candidates.append(o.get('availability', ''))
             for a in candidates:
-                if 'InStock' in a:
-                    return True
-                if 'OutOfStock' in a:
-                    return False
-        except Exception:
-            pass
-
-    if 'schema.org/InStock' in html:
-        return True
-    if 'schema.org/OutOfStock' in html:
-        return False
-    if 'InStock' in html:
-        return True
-    if 'OutOfStock' in html:
-        return False
-    if 'Agotado' in html:
-        return False
-    if 'Comprar ahora' in html:
-        return True
+                if 'InStock' in a: return True
+                if 'OutOfStock' in a: return False
+        except: pass
+    
+    if 'schema.org/InStock' in html or 'Comprar ahora' in html: return True
+    if 'Agotado' in html or 'schema.org/OutOfStock' in html: return False
     return None
 
-
-def load_state():
+def ejecutar_ciclo():
+    print(f'--- Ciclo {datetime.now().strftime("%H:%M:%S")} ---')
+    
+    # Leer configuración desde Firebase
     try:
-        with open(STATE_FILE, 'r') as f:
-            return json.load(f)
-    except Exception:
-        return {}
+        fb_data = doc_ref.get().to_dict() or {}
+        alertas_activas = fb_data.get('alerts', {})
+        estados_stock = fb_data.get('estados_stock', {})
+    except Exception as e:
+        print(f"Error Firebase: {e}")
+        return
 
-
-def save_state(state):
-    with open(STATE_FILE, 'w') as f:
-        json.dump(state, f, indent=2)
-
-
-def in_hours():
-    return True
-
-
-def main():
-    print('=== Monitor ' + datetime.utcnow().strftime('%Y-%m-%d %H:%M') + ' UTC ===')
-    state = load_state()
-    horario = in_hours()
+    cambios = False
 
     for product in PRODUCTS:
         pid = product['id']
-        name = product['name']
-        url = product['url']
-        print('-> ' + name)
+        # SOLO procesar si la campana está en ON en la web
+        if alertas_activas.get(pid) is True:
+            headers = {'User-Agent': random.choice(UA_LIST), 'Accept-Language': 'es-CL,es;q=0.9'}
+            try:
+                # Delay pequeño aleatorio para camuflaje
+                time.sleep(random.uniform(0.5, 1.2))
+                r = requests.get(product['url'], headers=headers, timeout=15)
+                available = is_available(r.text)
+                prev_status = estados_stock.get(pid)
 
-        try:
-            r = requests.get(url, headers=HEADERS, timeout=20)
-            html = r.text
-            print('   HTTP ' + str(r.status_code) + ' | ' + str(len(html)) + ' chars')
-        except Exception as e:
-            print('   Error: ' + str(e))
-            continue
+                # Notificar SOLO si cambia de Agotado -> Disponible
+                if available is True and prev_status != 'available':
+                    send_telegram(f"🟢 *{product['name']}* disponible!\n\n🔗 [Comprar ahora]({product['url']})")
+                    print(f"!!! Notificación enviada: {pid}")
+                
+                # Actualizar memoria
+                nuevo_status = 'available' if available else 'unavailable'
+                if prev_status != nuevo_status:
+                    estados_stock[pid] = nuevo_status
+                    cambios = True
+            except:
+                continue
 
-        available = is_available(html)
-        prev = state.get(pid, {}).get('status')
-        print('   Disponible: ' + str(available) + ' | Anterior: ' + str(prev))
+    if cambios:
+        doc_ref.update({'estados_stock': estados_stock})
 
-        if available is None:
-            print('   No se pudo determinar')
-            continue
-
-        state[pid] = {'status': 'available' if available else 'unavailable'}
-
-        if available and prev != 'available':
-            print('   *** DISPONIBLE - enviando Telegram ***')
-            if horario:
-                send_telegram('🟢 *' + name + '* disponible!\n\n🔗 [Ver producto](' + url + ')\n\n_mercadoamericano.cl_')
-            else:
-                print('   Fuera de horario (9-20h Chile), no se envia')
-
-    save_state(state)
-    print('=== Listo ===')
-
-
-if __name__ == '__main__':
-    main()
+# BUCLE DE 5 MINUTOS (Para GitHub Actions)
+start_run = time.time()
+while (time.time() - start_run) < 280: # Corre por 4.6 min
+    ejecutar_ciclo()
+    wait = random.randint(10, 20)
+    print(f"Esperando {wait}s...")
+    time.sleep(wait)
