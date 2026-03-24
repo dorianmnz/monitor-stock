@@ -33,7 +33,7 @@ CHAT_ID = os.environ.get('TG_CHAT_ID')
 
 def send_telegram(mensaje):
     if not TOKEN or not CHAT_ID:
-        print("⚠️ Telegram no configurado (faltan TOKEN o CHAT_ID en Secrets)")
+        print("⚠️ Telegram no configurado")
         return
     url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     payload = {"chat_id": CHAT_ID, "text": mensaje, "parse_mode": "HTML"}
@@ -42,7 +42,7 @@ def send_telegram(mensaje):
     except Exception as e:
         print(f"❌ Error enviando a Telegram: {e}")
 
-# --- LISTA DE PRODUCTOS ---
+# --- LISTA DE PRODUCTOS (Mantenemos tus URLs originales) ---
 PRODUCTS = [
     {"id":"parka", "name":"Parka Corriente", "url":"https://mercadoamericano.cl/parka-corriente-invierno"},
     {"id":"jeans", "name":"Blue Jeans", "url":"https://mercadoamericano.cl/blue-jeans-corriente-toda-temporada"},
@@ -60,7 +60,7 @@ PRODUCTS = [
 ]
 
 def check_stock():
-    print(f"--- Escaneo Pro + Telegram: {datetime.now()} ---")
+    print(f"--- Escaneo Iniciado: {datetime.now().strftime('%H:%M:%S')} ---")
     headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
 
     try:
@@ -76,39 +76,48 @@ def check_stock():
                 res = requests.get(p['url'], headers=headers, timeout=20)
                 html = res.text
                 
-                # DETECCIÓN POR HTML ESPECÍFICO
-                if 'product-message__title' in html and 'Agotado' in html:
-                    status = "unavailable"
-                elif 'product-stock__text-exact' in html:
-                    match = re.search(r'product-stock__text-exact">(\d+)', html)
-                    cantidad = int(match.group(1)) if match else 0
-                    status = "available" if cantidad > 0 else "unavailable"
-                else:
-                    status = "available" if "schema.org/InStock" in html else "unavailable"
+                # --- LÓGICA DE DETECCIÓN MEJORADA ---
+                status = "unavailable" # Por defecto asumimos agotado
                 
+                # 1. Prioridad: Buscar el número exacto de unidades
+                # Este Regex ignora espacios y captura solo el número
+                stock_match = re.search(r'product-stock__text-exact[^>]*>\s*(\d+)', html)
+                
+                if stock_match:
+                    cantidad = int(stock_match.group(1))
+                    print(f"📦 {p['name']}: {cantidad} unidades encontradas.")
+                    if cantidad > 0:
+                        status = "available"
+                
+                # 2. Respaldo: Si no hay número, buscamos etiquetas de texto clásicas
+                elif 'Disponible en stock' in html or 'schema.org/InStock' in html:
+                    # Solo si NO dice explícitamente Agotado en el mensaje principal
+                    if not ('product-message__title' in html and 'Agotado' in html):
+                        status = "available"
+
                 new_stocks[p['id']] = status
 
-                # --- LÓGICA DE NOTIFICACIÓN ---
-                # Si pasa de NO disponible a DISPONIBLE y la campana está ON
+                # --- LÓGICA DE TELEGRAM ---
+                # Solo notifica si: Cambia de Agotado -> Stock Y la campana está ON
                 if status == "available" and old_stocks.get(p['id']) != "available":
                     if alerts.get(p['id']) is True:
                         msg = f"🔔 <b>¡STOCK DETECTADO!</b> 🔔\n\n<b>Producto:</b> {p['name']}\n<b>Link:</b> <a href='{p['url']}'>Ir a la tienda</a>"
                         send_telegram(msg)
-                        print(f"🚀 Notificación enviada para {p['name']}")
+                        print(f"🚀 Telegram enviado para {p['name']}")
 
             except Exception as e:
-                print(f"⚠️ Error en {p['name']}: {e}")
+                print(f"⚠️ Error escaneando {p['name']}: {e}")
                 new_stocks[p['id']] = old_stocks.get(p['id'], "unavailable")
 
-        # Guardar en Firebase
+        # Guardar resultados finales
         doc_ref.set({
             'estados_stock': new_stocks,
             'last_run': datetime.now().isoformat()
         }, merge=True)
-        print("✅ Firebase actualizado.")
+        print("✅ Firebase actualizado correctamente.")
 
     except Exception as e:
-        print(f"❌ Error crítico: {e}")
+        print(f"❌ Error crítico en el proceso: {e}")
 
 if __name__ == "__main__":
     check_stock()
