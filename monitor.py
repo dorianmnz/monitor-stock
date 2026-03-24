@@ -4,33 +4,43 @@ import requests
 import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
+import re
 
-# --- CONFIGURACIÓN DE SEGURIDAD ---
-# Intentamos leer primero desde los Secrets de GitHub
+# --- CONFIGURACIÓN DE SEGURIDAD (FIREBASE) ---
 if 'FIREBASE_KEY' in os.environ:
     try:
-        # Cargamos el JSON desde la variable de entorno
         key_dict = json.loads(os.environ['FIREBASE_KEY'])
         cred = credentials.Certificate(key_dict)
-        print("✅ Conectado usando GitHub Secrets.")
     except Exception as e:
-        print(f"❌ Error procesando el Secret FIREBASE_KEY: {e}")
-        exit(1) # Detener si el secreto está mal formado
+        print(f"❌ Error en Secret FIREBASE_KEY: {e}")
+        exit(1)
 else:
-    # Si NO hay secreto (ejemplo: en tu PC local), busca el archivo
     if os.path.exists('serviceAccountKey.json'):
         cred = credentials.Certificate('serviceAccountKey.json')
-        print("🏠 Conectado usando archivo local.")
     else:
-        print("❌ ERROR: No se encontró FIREBASE_KEY en Secrets ni el archivo serviceAccountKey.json")
+        print("❌ No se encontró llave de Firebase.")
         exit(1)
 
-# Inicializar Firebase
 if not firebase_admin._apps:
     firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 doc_ref = db.collection('config').document('shared')
+
+# --- CONFIGURACIÓN TELEGRAM ---
+TOKEN = os.environ.get('TG_TOKEN')
+CHAT_ID = os.environ.get('TG_CHAT_ID')
+
+def send_telegram(mensaje):
+    if not TOKEN or not CHAT_ID:
+        print("⚠️ Telegram no configurado (faltan TOKEN o CHAT_ID en Secrets)")
+        return
+    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    payload = {"chat_id": CHAT_ID, "text": mensaje, "parse_mode": "HTML"}
+    try:
+        requests.post(url, json=payload, timeout=10)
+    except Exception as e:
+        print(f"❌ Error enviando a Telegram: {e}")
 
 # --- LISTA DE PRODUCTOS ---
 PRODUCTS = [
@@ -50,46 +60,55 @@ PRODUCTS = [
 ]
 
 def check_stock():
-    print(f"--- Inicio de escaneo: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} ---")
-    
-    # Obtener datos actuales de Firebase para comparar
+    print(f"--- Escaneo Pro + Telegram: {datetime.now()} ---")
+    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+
     try:
         doc = doc_ref.get()
         data = doc.to_dict() if doc.exists else {}
-    except Exception as e:
-        print(f"❌ Error al leer Firebase: {e}")
-        return
+        
+        alerts = data.get('alerts', {})
+        old_stocks = data.get('estados_stock', {})
+        new_stocks = {}
 
-    alerts = data.get('alerts', {})
-    old_stocks = data.get('estados_stock', {})
-    new_stocks = {}
+        for p in PRODUCTS:
+            try:
+                res = requests.get(p['url'], headers=headers, timeout=20)
+                html = res.text
+                
+                # DETECCIÓN POR HTML ESPECÍFICO
+                if 'product-message__title' in html and 'Agotado' in html:
+                    status = "unavailable"
+                elif 'product-stock__text-exact' in html:
+                    match = re.search(r'product-stock__text-exact">(\d+)', html)
+                    cantidad = int(match.group(1)) if match else 0
+                    status = "available" if cantidad > 0 else "unavailable"
+                else:
+                    status = "available" if "schema.org/InStock" in html else "unavailable"
+                
+                new_stocks[p['id']] = status
 
-    for p in PRODUCTS:
-        try:
-            # Petición a la web con un User-Agent para evitar bloqueos
-            res = requests.get(p['url'], timeout=15, headers={'User-Agent': 'Mozilla/5.0'})
-            # Detectar stock (ajustado a la web de Mercado Americano)
-            is_in_stock = "schema.org/InStock" in res.text or "Comprar ahora" in res.text
-            status = "available" if is_in_stock else "unavailable"
-            new_stocks[p['id']] = status
-            
-            print(f"🔎 {p['name']}: {status}")
+                # --- LÓGICA DE NOTIFICACIÓN ---
+                # Si pasa de NO disponible a DISPONIBLE y la campana está ON
+                if status == "available" and old_stocks.get(p['id']) != "available":
+                    if alerts.get(p['id']) is True:
+                        msg = f"🔔 <b>¡STOCK DETECTADO!</b> 🔔\n\n<b>Producto:</b> {p['name']}\n<b>Link:</b> <a href='{p['url']}'>Ir a la tienda</a>"
+                        send_telegram(msg)
+                        print(f"🚀 Notificación enviada para {p['name']}")
 
-        except Exception as e:
-            print(f"⚠️ Error en {p['name']}: {e}")
-            new_stocks[p['id']] = old_stocks.get(p['id'], "unavailable")
+            except Exception as e:
+                print(f"⚠️ Error en {p['name']}: {e}")
+                new_stocks[p['id']] = old_stocks.get(p['id'], "unavailable")
 
-    # Guardar en Firebase (Usamos set con merge para no borrar las alertas)
-    try:
+        # Guardar en Firebase
         doc_ref.set({
             'estados_stock': new_stocks,
             'last_run': datetime.now().isoformat()
         }, merge=True)
-        print("✅ Firebase actualizado correctamente.")
+        print("✅ Firebase actualizado.")
+
     except Exception as e:
-        print(f"❌ Error al guardar en Firebase: {e}")
-    
-    print("--- Proceso completado ---")
+        print(f"❌ Error crítico: {e}")
 
 if __name__ == "__main__":
     check_stock()
