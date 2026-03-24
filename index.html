@@ -36,14 +36,12 @@ body {
   min-height: 100vh; overflow-x: hidden; transition: background 0.5s ease;
 }
 
-/* --- BLOBS DE FONDO --- */
 .bg-blobs { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 .blob { position: absolute; width: 600px; height: 600px; border-radius: 50%; filter: blur(120px); opacity: 0.2; animation: move 35s infinite alternate; }
 .blob-1 { background: #007aff; top: -10%; left: -5%; }
 .blob-2 { background: #34c759; bottom: 5%; right: -5%; }
 @keyframes move { from { transform: translate(0,0); } to { transform: translate(40px, 60px); } }
 
-/* --- NAVBAR REESTRUCTURADA --- */
 .navbar {
   position: sticky; top: 0; z-index: 1000;
   padding-top: env(safe-area-inset-top, 20px);
@@ -74,7 +72,6 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
 .theme-btn:active, .refresh-btn:active { transform: scale(0.8); }
 .theme-v, .refresh-v { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.5; }
 
-/* --- GRID Y CARDS --- */
 .page { position: relative; z-index: 1; padding: 12px; max-width: 1200px; margin: 0 auto; }
 .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 @media (min-width: 600px) { .grid { grid-template-columns: repeat(4, 1fr); gap: 15px; } }
@@ -98,7 +95,6 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
 .card-name { font-size: 18px; font-weight: 800; line-height: 1.15; }
 .card-bottom { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 10px 10px 20px; gap: 10px; }
 
-/* --- BADGES Y BOTONES --- */
 .badge { font-size: 9px; font-weight: 800; padding: 6px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.2); text-transform: uppercase; pointer-events: none; }
 .badge.available { color: var(--ok); background: rgba(52,199,89,0.12); }
 .badge.unavailable { color: var(--warn); background: rgba(255,59,48,0.08); }
@@ -116,7 +112,6 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
 
 .card-link { margin-top: auto; font-size: 11px; font-weight: 700; color: var(--blue); text-decoration: none; padding-top: 5px; position: relative; z-index: 10; }
 
-/* --- BOTÓN LIQUID GLASS --- */
 .test-footer { display: flex; justify-content: center; padding: 40px 0 60px; }
 .test-btn { 
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
@@ -129,15 +124,10 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
   transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   letter-spacing: 0.5px;
 }
-.test-btn:hover {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.1));
-  box-shadow: 0 12px 40px 0 rgba(0, 122, 255, 0.25);
-  transform: translateY(-2px);
-}
-.test-btn:active { transform: scale(0.92); opacity: 0.7; }
+.test-btn:hover { background: rgba(255,255,255,0.2); transform: translateY(-2px); }
+.test-btn:active { transform: scale(0.92); }
 .plane-v { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.5; }
 
-/* --- DRAG & DROP --- */
 .sortable-ghost { opacity: 0.1 !important; }
 .sortable-drag {
     opacity: 1 !important; transform: scale(1.05) rotate(3deg) !important;
@@ -161,10 +151,10 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
     </div>
     <div class="nav-right-stack">
         <div class="nav-btns-row">
-            <button class="refresh-btn" onclick="manualRefresh()" title="Recargar">
+            <button class="refresh-btn" onclick="manualRefresh()">
               <svg class="refresh-v" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
             </button>
-            <button class="theme-btn" onclick="toggleTheme()" title="Cambiar Tema">
+            <button class="theme-btn" onclick="toggleTheme()">
               <svg class="theme-v" id="theme-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></svg>
             </button>
         </div>
@@ -196,7 +186,6 @@ const FB = {
   appId: "1:882469416373:web:3f78ef9214c2705074bdfc"
 };
 
-// --- CONFIGURACIÓN PARA EL BOTÓN DE TEST ---
 const WEB_TG_TOKEN = "8287364225:AAHcJQh1Ms3fK13jrTwgjbJE1u35SpLQFeo"; 
 const WEB_TG_ID = "5461350867"; 
 
@@ -228,11 +217,8 @@ const ICON_ON = `<svg class="v-icon v-on" viewBox="0 0 24 24"><path d="M18 8A6 6
 
 function updateThemeIcon(isDark) {
   const svg = document.getElementById("theme-svg");
-  if(isDark) {
-    svg.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
-  } else {
-    svg.innerHTML = '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>';
-  }
+  if(isDark) svg.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+  else svg.innerHTML = '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>';
 }
 
 window.toggleTheme = () => {
@@ -256,7 +242,6 @@ window.testTelegram = async () => {
     alert("ℹ️ Activa la campana en un producto 'En Stock' para probar.");
     return;
   }
-  alert(`🚀 Enviando prueba de stock a Telegram...`);
   for(const p of availableWithAlert) {
     const msg = `🧪 <b>TEST DE INTERFAZ</b>\n\n<b>Producto:</b> ${p.name}\n<b>Estado:</b> Disponible ✅`;
     const url = `https://api.telegram.org/bot${WEB_TG_TOKEN}/sendMessage`;
@@ -266,6 +251,7 @@ window.testTelegram = async () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ chat_id: WEB_TG_ID, text: msg, parse_mode: 'HTML' })
       });
+      alert(`🚀 Mensaje enviado para ${p.name}`);
     } catch(e) { console.error("Error en test:", e); }
   }
 };
@@ -294,15 +280,12 @@ function renderCards() {
   }).join("");
 
   document.querySelectorAll('.bell-sw').forEach(sw => {
-    sw.addEventListener('click', () => {
-        const id = sw.getAttribute('data-id');
-        handleToggleAlert(id);
-    });
+    sw.addEventListener('click', () => handleToggleAlert(sw.getAttribute('data-id')));
   });
 }
 
-const sortable = new Sortable(document.getElementById("grid"), {
-    animation: 250, ghostClass: 'sortable-ghost', dragClass: 'sortable-drag', chosenClass: 'sortable-chosen',
+new Sortable(document.getElementById("grid"), {
+    animation: 250, ghostClass: 'sortable-ghost', dragClass: 'sortable-drag',
     delay: 150, delayOnTouchOnly: true,
     onEnd: function() {
         const order = Array.from(document.getElementById("grid").children).map(card => card.id);
@@ -325,14 +308,14 @@ onSnapshot(DBREF, (snap) => {
 
 window.handleToggleAlert = async (id) => { 
   const current = alerts[id] || false;
-  alerts[id] = !current; renderCards();
+  alerts[id] = !current; 
+  renderCards();
   try { await updateDoc(DBREF, { [`alerts.${id}`]: alerts[id] }); } catch(e) { }
 };
 
 const savedTheme = localStorage.getItem('theme-pref') || 'dark';
-if (savedTheme === 'light') { document.body.classList.remove('dark'); updateThemeIcon(false); }
-else { document.body.classList.add('dark'); updateThemeIcon(true); }
-
+document.body.classList.toggle('dark', savedTheme === 'dark');
+updateThemeIcon(savedTheme === 'dark');
 renderCards();
 </script>
 </body>
