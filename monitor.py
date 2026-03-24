@@ -80,31 +80,26 @@ def check_stock():
                 status = "unavailable" # Asumimos agotado por seguridad
                 
                 # Buscamos la etiqueta que me pasaste
-                # Esta expresión regular busca el número que esté ANTES de la palabra "unidades"
                 stock_match = re.search(r'product-stock__text-exact">(\d+)\s*unidades', html)
                 
                 if stock_match:
                     cantidad = int(stock_match.group(1))
                     print(f"📦 {p['name']}: {cantidad} unidades detectadas.")
                     
-                    # REGLA DE ORO: Solo disponible si hay más de 0
                     if cantidad > 0:
                         status = "available"
                     else:
                         status = "unavailable"
                 
-                # RESPALDO: Si no encuentra el número, buscamos la palabra "Agotado"
                 elif "product-message__title" in html and "Agotado" in html:
                     status = "unavailable"
                 
-                # RESPALDO 2: Si no hay número ni mensaje de agotado, usamos el schema estándar
                 else:
                     status = "available" if "schema.org/InStock" in html else "unavailable"
 
                 new_stocks[p['id']] = status
 
                 # --- LÓGICA DE TELEGRAM ---
-                # Solo notifica si: Cambia de Agotado -> Stock Y la campana está ON
                 if status == "available" and old_stocks.get(p['id']) != "available":
                     if alerts.get(p['id']) is True:
                         msg = f"🔔 <b>¡STOCK DETECTADO!</b> 🔔\n\n<b>Producto:</b> {p['name']}\n<b>Link:</b> <a href='{p['url']}'>Ir a la tienda</a>"
@@ -115,7 +110,6 @@ def check_stock():
                 print(f"⚠️ Error escaneando {p['name']}: {e}")
                 new_stocks[p['id']] = old_stocks.get(p['id'], "unavailable")
 
-        # Guardar resultados finales
         doc_ref.set({
             'estados_stock': new_stocks,
             'last_run': datetime.now().isoformat()
@@ -126,4 +120,7 @@ def check_stock():
         print(f"❌ Error crítico en el proceso: {e}")
 
 if __name__ == "__main__":
+    # --- PRUEBA DE TELEGRAM (Puedes borrar esta línea después de recibir el mensaje) ---
+    send_telegram("🚀 <b>¡Conexión Exitosa!</b>\nTu monitor de Mercado Americano está vinculado correctamente a este chat.")
+    
     check_stock()
