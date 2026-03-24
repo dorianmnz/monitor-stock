@@ -237,23 +237,16 @@ window.manualRefresh = () => {
 };
 
 window.testTelegram = async () => {
-  const availableWithAlert = PRODUCTS.filter(p => state[p.id]?.status === 'available' && alerts[p.id] === true);
-  if(availableWithAlert.length === 0) {
-    alert("ℹ️ Activa la campana en un producto 'En Stock' para probar.");
-    return;
-  }
-  for(const p of availableWithAlert) {
-    const msg = `🧪 <b>TEST DE INTERFAZ</b>\n\n<b>Producto:</b> ${p.name}\n<b>Estado:</b> Disponible ✅`;
-    const url = `https://api.telegram.org/bot${WEB_TG_TOKEN}/sendMessage`;
-    try {
-      await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: WEB_TG_ID, text: msg, parse_mode: 'HTML' })
-      });
-      alert(`🚀 Mensaje enviado para ${p.name}`);
-    } catch(e) { console.error("Error en test:", e); }
-  }
+  const msg = `🧪 <b>TEST DE INTERFAZ</b>\n\nSi lees esto, las notificaciones están correctamente configuradas. ✅`;
+  const url = `https://api.telegram.org/bot${WEB_TG_TOKEN}/sendMessage`;
+  try {
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: WEB_TG_ID, text: msg, parse_mode: 'HTML' })
+    });
+    alert(`🚀 Mensaje de prueba enviado.`);
+  } catch(e) { console.error("Error en test:", e); }
 };
 
 function renderCards() {
