@@ -92,7 +92,7 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
   min-height: 280px; 
   box-shadow: 0 4px 20px rgba(0,0,0,0.02);
   overflow: hidden;
-  cursor: grab; /* Indica que se puede mover */
+  cursor: grab;
   user-select: none;
   touch-action: manipulation;
 }
@@ -159,9 +159,7 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
     </div>
     <div class="nav-right-stack">
         <button class="theme-btn" onclick="toggleTheme()">
-          <svg class="theme-v" id="theme-svg" viewBox="0 0 24 24">
-            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-          </svg>
+          <svg class="theme-v" id="theme-svg" viewBox="0 0 24 24"></svg>
         </button>
         <div class="sync-pill"><div class="dot-pulse"></div> BOT ACTIVO</div>
     </div>
@@ -211,11 +209,27 @@ let alerts = {};
 const ICON_OFF = `<svg class="v-icon v-off" viewBox="0 0 24 24"><path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M18.63 13A17.89 17.89 0 0 1 18 8"/><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.33-5"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
 const ICON_ON = `<svg class="v-icon v-on" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`;
 
+// --- LÓGICA DE TEMA (MODO NOCHE) CON MEMORIA ---
+function updateThemeIcon(isDark) {
+  const svg = document.getElementById("theme-svg");
+  if(isDark) {
+    svg.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+  } else {
+    svg.innerHTML = '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>';
+  }
+}
+
+window.toggleTheme = () => {
+  const isDark = document.body.classList.toggle("dark");
+  localStorage.setItem('theme-pref', isDark ? 'dark' : 'light');
+  updateThemeIcon(isDark);
+};
+
+// --- RENDERIZADO ---
 function renderCards() {
   const grid = document.getElementById("grid");
   const savedOrder = JSON.parse(localStorage.getItem('card-order'));
   
-  // Ordenar productos según el guardado
   let sortedProducts = [...PRODUCTS];
   if (savedOrder) {
     sortedProducts.sort((a, b) => savedOrder.indexOf(a.id) - savedOrder.indexOf(b.id));
@@ -239,7 +253,6 @@ function renderCards() {
     </div>`;
   }).join("");
 
-  // Agregar eventos de clic a los switches después de renderizar
   document.querySelectorAll('.bell-sw').forEach(sw => {
     sw.addEventListener('click', (e) => {
         const id = sw.getAttribute('data-id');
@@ -248,13 +261,13 @@ function renderCards() {
   });
 }
 
-// Inicializar SortableJS con tambaleo
+// --- SORTABLE (DRAG & DROP) ---
 const sortable = new Sortable(document.getElementById("grid"), {
     animation: 250,
     ghostClass: 'sortable-ghost',
     dragClass: 'sortable-drag',
     chosenClass: 'sortable-chosen',
-    delay: 150, // Tiempo de presión necesario para empezar a arrastrar (evita clics accidentales)
+    delay: 150,
     delayOnTouchOnly: true,
     onEnd: function() {
         const order = Array.from(document.getElementById("grid").children).map(card => card.id);
@@ -262,6 +275,7 @@ const sortable = new Sortable(document.getElementById("grid"), {
     }
 });
 
+// --- FIREBASE SYNC ---
 onSnapshot(DBREF, (snap) => { 
   if(snap.exists()){ 
     const data = snap.data();
@@ -284,12 +298,15 @@ window.handleToggleAlert = async (id) => {
   } catch(e) { console.error("Error al guardar alerta:", e); }
 };
 
-window.toggleTheme = () => {
-  const isDark = document.body.classList.toggle("dark");
-  const svg = document.getElementById("theme-svg");
-  if(isDark) svg.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
-  else svg.innerHTML = '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>';
-};
+// --- INICIALIZACIÓN AL CARGAR ---
+const savedTheme = localStorage.getItem('theme-pref') || 'dark';
+if (savedTheme === 'light') {
+    document.body.classList.remove('dark');
+    updateThemeIcon(false);
+} else {
+    document.body.classList.add('dark');
+    updateThemeIcon(true);
+}
 
 renderCards();
 </script>
