@@ -1,16 +1,17 @@
 {
-  "short_name": "Monitor Stock",
-  "name": "Monitor Premium Mercado Americano",
+  "short_name": "Monitor",
+  "name": "Monitor Mercado Americano",
   "icons": [
     {
       "src": "icon.png",
-      "sizes": "192x192 512x512",
+      "sizes": "708x708",
       "type": "image/png",
       "purpose": "any maskable"
     }
   ],
   "start_url": "./index.html",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#000000",
   "theme_color": "#000000"
 }
