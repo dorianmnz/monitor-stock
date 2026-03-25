@@ -4,7 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Monitor Premium - Mercado Americano</title>
+
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon.png">
+<link rel="manifest" href="manifest.json">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -128,34 +134,28 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
 .test-btn:active { transform: scale(0.92); }
 .plane-v { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.5; }
 
-/* --- NUEVOS ESTILOS POPUP LIQUID GLASS ACTUALIZADOS --- */
 .glass-toast {
   position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%) scale(0.5);
   opacity: 0; pointer-events: none;
-  /* Fondo más opaco y borde más grueso para resaltar sobre el blanco */
   background: rgba(255, 255, 255, 0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
   border: 2px solid rgba(255, 255, 255, 0.8); 
-  /* Burbuja más grande: más padding y border-radius */
   border-radius: 28px; padding: 18px 30px; 
   margin-bottom: 20px; width: max-content;
-  display: flex; align-items: center; gap: 15px; /* Más espacio interno */
+  display: flex; align-items: center; gap: 15px; 
   box-shadow: 0 15px 35px rgba(0,0,0,0.15);
   transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   z-index: 2000;
 }
 .glass-toast.show { opacity: 1; transform: translateX(-50%) scale(1); }
 
-/* Fuente NEGRA y un poco más grande para legibilidad */
 .toast-txt { font-size: 15px; font-weight: 750; color: #000000; letter-spacing: -0.3px;}
 
-/* Ticket MÁS GRANDE */
 .tick-svg { width: 32px; height: 32px; color: var(--ok); flex-shrink: 0;}
 .tick-path {
   stroke-dasharray: 100; stroke-dashoffset: 100;
   animation: draw-tick 0.6s ease-out forwards 0.2s;
 }
 @keyframes draw-tick { to { stroke-dashoffset: 0; } }
-/* ------------------------------------------------------ */
 
 .sortable-ghost { opacity: 0.1 !important; }
 .sortable-drag {
@@ -299,13 +299,12 @@ window.testTelegram = async () => {
       })
     });
     
-    // Trigger Animación Liquid Glass
     const toast = document.getElementById('toast');
     toast.classList.add('show');
     
     setTimeout(() => {
       toast.classList.remove('show');
-    }, 3500); // Un poco más de tiempo ya que es más grande
+    }, 3500);
 
   } catch(e) { console.error("Error en notificación:", e); }
 };
