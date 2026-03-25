@@ -1,7 +1,20 @@
 {
   "short_name": "Monitor",
-  "name": "Monitor Mercado Americano",
+  "name": "Monitor Stock Mercado Americano",
+  "description": "Monitor de stock en tiempo real",
   "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "icon.png",
       "sizes": "708x708",
@@ -9,9 +22,10 @@
       "purpose": "any maskable"
     }
   ],
-  "start_url": "./index.html",
+  "start_url": "/monitor-stock/",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#000000",
-  "theme_color": "#000000"
+  "theme_color": "#000000",
+  "scope": "/monitor-stock/",
+  "orientation": "portrait"
 }
