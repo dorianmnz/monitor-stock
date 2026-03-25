@@ -1,7 +1,7 @@
 {
   "short_name": "Monitor",
   "name": "Monitor Stock Mercado Americano",
-  "description": "Monitor de stock en tiempo real",
+  "description": "Monitor de stock en tiempo real con diseño Liquid Glass",
   "icons": [
     {
       "src": "icon.png",
@@ -22,10 +22,10 @@
       "purpose": "any maskable"
     }
   ],
-  "start_url": "/monitor-stock/",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
-  "scope": "/monitor-stock/",
-  "orientation": "portrait"
+  "orientation": "portrait",
+  "scope": "./"
 }
