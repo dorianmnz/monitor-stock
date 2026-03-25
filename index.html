@@ -3,14 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="mobile-web-app-capable" content="yes">
-<title>Monitor Premium - Mercado Americano</title>
+<meta name="apple-mobile-web-app-title" content="Monitor">
+<meta name="theme-color" content="#000000">
 
-<link rel="apple-touch-icon" href="icon.png">
-<link rel="icon" type="image/png" sizes="192x192" href="icon.png">
+<link rel="apple-touch-icon" sizes="708x708" href="icon.png">
+<link rel="icon" type="image/png" sizes="708x708" href="icon.png">
 <link rel="manifest" href="manifest.json">
+
+<title>Monitor Premium - Mercado Americano</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -190,186 +194,3 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
         <div class="sync-pill"><div class="dot-pulse"></div> BOT ACTIVO</div>
     </div>
   </div>
-</nav>
-
-<div class="page">
-  <div class="grid" id="grid"></div>
-  <div class="test-footer">
-    <div id="toast" class="glass-toast">
-      <svg class="tick-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
-        <polyline class="tick-path" points="20 6 9 17 4 12"></polyline>
-      </svg>
-      <span class="toast-txt">Resumen de stock enviado a Telegram</span>
-    </div>
-
-    <button class="test-btn" onclick="testTelegram()">
-      <svg class="plane-v" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke-linecap="round" stroke-linejoin="round"></path></svg>
-      NOTIFICAR TELEGRAM
-    </button>
-  </div>
-</div>
-
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getFirestore, doc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-const FB = {
-  apiKey: "AIzaSyAv9h_GGSE44cJ_MOurLGLegDtJPdkDrmc",
-  authDomain: "monitor-stock.firebaseapp.com",
-  projectId: "monitor-stock",
-  storageBucket: "monitor-stock.firebasestorage.app",
-  messagingSenderId: "882469416373",
-  appId: "1:882469416373:web:3f78ef9214c2705074bdfc"
-};
-
-const WEB_TG_TOKEN = "8287364225:AAHcJQh1Ms3fK13jrTwgjbJE1u35SpLQFeo"; 
-const WEB_TG_ID = "5461350867"; 
-
-const app = initializeApp(FB);
-const db = getFirestore(app);
-const DBREF = doc(db, "config", "shared");
-
-const PRODUCTS = [
-  {id:"parka", name:"Parka Corriente", url:"https://mercadoamericano.cl/parka-corriente-invierno"},
-  {id:"jeans", name:"Blue Jeans", url:"https://mercadoamericano.cl/blue-jeans-corriente-toda-temporada"},
-  {id:"casaca", name:"Casaca Corriente", url:"https://mercadoamericano.cl/casaca-corriente-invierno"},
-  {id:"buzo", name:"Buzo Corriente", url:"https://mercadoamericano.cl/buzo-hombre-mujer-corriente-toda-temporada"},
-  {id:"poleron", name:"Polerón Canguro", url:"https://mercadoamericano.cl/poleron-canguro-corriente-toda-temporada"},
-  {id:"paso", name:"Paso Corriente", url:"https://mercadoamericano.cl/paso-corriente-invierno"},
-  {id:"polera", name:"Polera Manga Larga", url:"https://mercadoamericano.cl/polera-manga-larga-corriente-invierno"},
-  {id:"sweater", name:"Sweater Algodón", url:"https://mercadoamericano.cl/sweater-algodon-corriente-toda-temporada"},
-  {id:"camisa", name:"Camisa Manga Larga", url:"https://mercadoamericano.cl/camisa-manga-larga-corriente-toda-temporada"},
-  {id:"franela", name:"Camisa Franela", url:"https://mercadoamericano.cl/camisa-lana-franela-corriente-invierno"},
-  {id:"blusa", name:"Blusa Manga Larga", url:"https://mercadoamericano.cl/blusa-manga-larga-extra-especial-toda-temporada"},
-  {id:"polcorta", name:"Polera Manga Corta", url:"https://mercadoamericano.cl/polera-manga-corta-corriente-verano"},
-  {id:"polpolar", name:"Polerón Polar", url:"https://mercadoamericano.cl/poleron-polar-corriente-invierno"}
-];
-
-let state = {}; 
-let alerts = {};
-
-const ICON_OFF = `<svg class="v-icon v-off" viewBox="0 0 24 24"><path d="M13.73 21a2 2 0 0 1-3.46 0"/><path d="M18.63 13A17.89 17.89 0 0 1 18 8"/><path d="M6.26 6.26A5.86 5.86 0 0 0 6 8c0 7-3 9-3 9h14"/><path d="M18 8a6 6 0 0 0-9.33-5"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
-const ICON_ON = `<svg class="v-icon v-on" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`;
-
-function updateThemeIcon(isDark) {
-  const svg = document.getElementById("theme-svg");
-  if(isDark) svg.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
-  else svg.innerHTML = '<circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>';
-}
-
-window.toggleTheme = () => {
-  const isDark = document.body.classList.toggle("dark");
-  localStorage.setItem('theme-pref', isDark ? 'dark' : 'light');
-  updateThemeIcon(isDark);
-};
-
-window.manualRefresh = () => {
-  const cards = document.querySelectorAll('.card');
-  cards.forEach(c => c.classList.add('refreshing'));
-  setTimeout(() => {
-    cards.forEach(c => c.classList.remove('refreshing'));
-    renderCards();
-  }, 400);
-};
-
-window.testTelegram = async () => {
-  const activeAlerts = PRODUCTS.filter(p => state[p.id]?.status === 'available' && alerts[p.id] === true);
-  
-  let msg = `📋 <b>RESUMEN DE DISPONIBILIDAD</b>\n\n`;
-  
-  if (activeAlerts.length > 0) {
-    msg += `Productos con alerta activa en stock:\n`;
-    activeAlerts.forEach(p => {
-      msg += `• <a href="${p.url}">${p.name}</a> ✅\n`;
-    });
-  } else {
-    msg += `No hay productos con stock y alerta encendida actualmente. 🔔`;
-  }
-
-  const url = `https://api.telegram.org/bot${WEB_TG_TOKEN}/sendMessage`;
-  try {
-    await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
-        chat_id: WEB_TG_ID, 
-        text: msg, 
-        parse_mode: 'HTML',
-        disable_web_page_preview: true 
-      })
-    });
-    
-    const toast = document.getElementById('toast');
-    toast.classList.add('show');
-    
-    setTimeout(() => {
-      toast.classList.remove('show');
-    }, 3500);
-
-  } catch(e) { console.error("Error en notificación:", e); }
-};
-
-function renderCards() {
-  const grid = document.getElementById("grid");
-  const savedOrder = JSON.parse(localStorage.getItem('card-order'));
-  let sortedProducts = [...PRODUCTS];
-  if (savedOrder) sortedProducts.sort((a, b) => savedOrder.indexOf(a.id) - savedOrder.indexOf(b.id));
-
-  grid.innerHTML = sortedProducts.map(p => {
-    const s = state[p.id] || {status: 'checking'}; 
-    const a = alerts[p.id] || false;
-    const statusText = s.status === 'available' ? 'En Stock' : (s.status === 'checking' ? 'Cargando...' : 'Agotado');
-    return `
-    <div class="card" id="${p.id}">
-      <div class="card-top"><div class="card-name">${p.name}</div></div>
-      <div class="card-bottom">
-        <div class="badge ${s.status}">${statusText}</div>
-        <div class="bell-sw ${a?'on':'off'}" data-id="${p.id}">
-          <div class="switch-container">${ICON_OFF}<div class="ios-sw"><div class="ios-h"></div></div>${ICON_ON}</div>
-        </div>
-        <a class="card-link" href="${p.url}" target="_blank" onmousedown="event.stopPropagation()">IR A LA TIENDA</a>
-      </div>
-    </div>`;
-  }).join("");
-
-  document.querySelectorAll('.bell-sw').forEach(sw => {
-    sw.addEventListener('click', () => handleToggleAlert(sw.getAttribute('data-id')));
-  });
-}
-
-new Sortable(document.getElementById("grid"), {
-    animation: 250, ghostClass: 'sortable-ghost', dragClass: 'sortable-drag',
-    delay: 150, delayOnTouchOnly: true,
-    onEnd: function() {
-        const order = Array.from(document.getElementById("grid").children).map(card => card.id);
-        localStorage.setItem('card-order', JSON.stringify(order));
-    }
-});
-
-onSnapshot(DBREF, (snap) => { 
-  if(snap.exists()){ 
-    const data = snap.data();
-    if(data.alerts) alerts = data.alerts;
-    if(data.estados_stock) {
-        Object.keys(data.estados_stock).forEach(id => {
-            state[id] = { status: data.estados_stock[id] };
-        });
-    }
-    renderCards(); 
-  } 
-});
-
-window.handleToggleAlert = async (id) => { 
-  const current = alerts[id] || false;
-  alerts[id] = !current; 
-  renderCards();
-  try { await updateDoc(DBREF, { [`alerts.${id}`]: alerts[id] }); } catch(e) { }
-};
-
-const savedTheme = localStorage.getItem('theme-pref') || 'dark';
-document.body.classList.toggle('dark', savedTheme === 'dark');
-updateThemeIcon(savedTheme === 'dark');
-renderCards();
-</script>
-</body>
-</html>
