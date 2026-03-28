@@ -3,11 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Monitor">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#fbfbfd">
+
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" type="image/png" href="icon.png">
 
@@ -45,6 +47,7 @@ body.dark {
 html, body {
   overflow-x: hidden;
   touch-action: pan-y;
+  height: 100%;
 }
 
 body {
@@ -139,7 +142,7 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
 
 .card-link { margin-top: auto; font-size: 10px; font-weight: 800; color: var(--blue); text-decoration: none; text-transform: uppercase; }
 
-.test-footer { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; justify-content: center; padding: 20px; z-index: 2000; pointer-events: none; }
+.test-footer { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; justify-content: center; padding: 20px; padding-bottom: calc(20px + env(safe-area-inset-bottom)); z-index: 2000; pointer-events: none; }
 .test-btn { 
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.5));
   backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -216,6 +219,10 @@ const PRODUCTS = [
 
 let state = {}; let alerts = {};
 
+// --- CREDENCIALES TELEGRAM ---
+const TG_TOKEN = "8287364225:AAHcJQh1Ms3fK13jrTwgjbJE1u35SpLQFeo"; 
+const TG_CHAT_ID = "5461350867";
+
 window.manualRefresh = (btn) => {
   btn.classList.add('bounce-click');
   setTimeout(() => {
@@ -228,9 +235,36 @@ window.testTelegram = async () => {
   const btn = document.querySelector('.test-btn');
   btn.classList.add('bounce-click');
   setTimeout(() => btn.classList.remove('bounce-click'), 400);
+
+  const activos = PRODUCTS.filter(p => {
+    const s = state[p.id]?.status === 'available';
+    const a = alerts[p.id] === true;
+    return s && a;
+  });
+
+  let mensaje = "📊 <b>RESUMEN DE STOCK ACTUAL</b>\n";
+  mensaje += "<i>(Solo productos con campana activa)</i>\n";
+  mensaje += "──────────────────\n";
+  
+  if (activos.length > 0) {
+    mensaje += activos.map(p => `• <a href="${p.url}">${p.name}</a>`).join("\n");
+  } else {
+    mensaje += "No hay productos con la campana activa que tengan stock en este momento.";
+  }
+  mensaje += "\n──────────────────";
+
   try {
-      await updateDoc(DBREF, { test_trigger: true });
-  } catch(e) { console.error(e); }
+      await fetch(`https://api.telegram.org/bot${TG_TOKEN}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+              chat_id: TG_CHAT_ID,
+              text: mensaje,
+              parse_mode: 'HTML'
+          })
+      });
+      await updateDoc(DBREF, { last_manual_summary: Date.now() });
+  } catch(e) { console.error("Error Telegram:", e); }
 };
 
 window.toggleTheme = () => {
