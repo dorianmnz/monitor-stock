@@ -3,13 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Monitor">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#fbfbfd">
-
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" type="image/png" href="icon.png">
 
@@ -47,7 +45,6 @@ body.dark {
 html, body {
   overflow-x: hidden;
   touch-action: pan-y;
-  height: 100%;
 }
 
 body {
@@ -95,6 +92,7 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
   60% { transform: scale(1.05); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
+
 .card-anim { animation: cardEntrance 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
 
 .card {
@@ -152,6 +150,36 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
   transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 body.dark .test-btn { background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05)); border-color: rgba(255, 255, 255, 0.2); color: #fff; }
+
+/* MODIFICACIÓN: Popup Liquid Glass con Transparencia 3% y Animación de Reducción */
+.tg-popup {
+  position: fixed; 
+  bottom: 80px; /* Sale por encima de la burbuja */
+  left: 50%; 
+  transform: translateX(-50%) scale(0);
+  transform-origin: bottom center; /* Animación desde la burbuja inferior */
+  width: 85%; /* Ocupa buena parte de la pantalla */
+  max-width: 500px;
+  min-height: 200px;
+  background: rgba(255, 255, 255, 0.03); /* Transparencia al 3% */
+  backdrop-filter: blur(30px) saturate(150%); -webkit-backdrop-filter: blur(30px) saturate(150%);
+  border: 1.5px solid rgba(255, 255, 255, 0.15); /* Borde sutil para el efecto vidrio */
+  padding: 30px; border-radius: 40px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
+  z-index: 9999;
+  box-shadow: 0 25px 50px rgba(0,0,0,0.15);
+  opacity: 0; 
+  transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1); /* Suave y animado */
+  pointer-events: none;
+}
+.tg-popup.show { transform: translateX(-50%) scale(1); opacity: 1; pointer-events: auto; }
+
+.check-icon-container { 
+  width: 50px; height: 50px; background: var(--ok); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; color: white;
+  font-size: 24px; animation: checkPopIn 0.5s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) backwards;
+}
+@keyframes checkPopIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 </style>
 </head>
 <body>
@@ -181,6 +209,11 @@ body.dark .test-btn { background: linear-gradient(135deg, rgba(255, 255, 255, 0.
       NOTIFICAR TELEGRAM
     </button>
 </footer>
+
+<div id="telegramPopup" class="tg-popup">
+  <div class="check-icon-container">✓</div>
+  <span style="font-size: 16px; font-weight: 900; color: var(--txt); text-align: center; letter-spacing: 0.5px;">STOCK ENVIADO A TELEGRAM</span>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -218,16 +251,18 @@ const PRODUCTS = [
 ];
 
 let state = {}; let alerts = {};
+let shouldAnimate = false;
 
-// --- CREDENCIALES TELEGRAM ---
-const TG_TOKEN = "8287364225:AAHcJQh1Ms3fK13jrTwgjbJE1u35SpLQFeo"; 
-const TG_CHAT_ID = "5461350867";
+const TG_TOKEN = "7880998632:AAH6vS53_r-W6W_7fBExmO3_2CbeB8f18k8"; 
+const TG_CHAT_ID = "-4755146524";
 
 window.manualRefresh = (btn) => {
   btn.classList.add('bounce-click');
+  shouldAnimate = true;
   setTimeout(() => {
     btn.classList.remove('bounce-click');
     renderCards();
+    shouldAnimate = false;
   }, 400);
 };
 
@@ -249,7 +284,7 @@ window.testTelegram = async () => {
   if (activos.length > 0) {
     mensaje += activos.map(p => `• <a href="${p.url}">${p.name}</a>`).join("\n");
   } else {
-    mensaje += "No hay productos con la campana activa que tengan stock en este momento.";
+    mensaje += "No hay productos con alerta en stock.";
   }
   mensaje += "\n──────────────────";
 
@@ -263,9 +298,23 @@ window.testTelegram = async () => {
               parse_mode: 'HTML'
           })
       });
+      
+      showTelegramPopup();
       await updateDoc(DBREF, { last_manual_summary: Date.now() });
-  } catch(e) { console.error("Error Telegram:", e); }
+  } catch(e) { console.error("Error envío inmediato:", e); }
 };
+
+function showTelegramPopup() {
+  const popup = document.getElementById("telegramPopup");
+  popup.classList.add("show");
+  // La reducción suave se dispara tras un tiempo de lectura
+  setTimeout(hideTelegramPopup, 3500);
+}
+
+function hideTelegramPopup() {
+  const popup = document.getElementById("telegramPopup");
+  popup.classList.remove("show");
+}
 
 window.toggleTheme = () => {
   const isDark = document.body.classList.toggle("dark");
@@ -289,8 +338,10 @@ function renderCards() {
     const s = state[p.id] || {status: 'checking'}; 
     const a = alerts[p.id] || false;
     const statusText = s.status === 'available' ? 'En Stock' : 'Agotado';
+    const animationClass = shouldAnimate ? 'card-anim' : '';
+    
     return `
-    <div class="card card-anim" id="${p.id}" style="animation-delay: ${index * 0.03}s">
+    <div class="card ${animationClass}" id="${p.id}" style="animation-delay: ${index * 0.03}s">
       <div class="card-wobble-wrapper">
           <div class="card-top"><div class="card-name">${p.name}</div></div>
           <div class="card-bottom">
