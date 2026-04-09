@@ -42,25 +42,36 @@ body.dark {
   user-select: none;
 }
 
-html, body { overflow-x: hidden; touch-action: pan-y; }
+html, body { 
+  overflow-x: hidden; 
+  background: var(--bg-base);
+}
 
 body {
-  font-family: var(--font); background: var(--bg-base); color: var(--txt);
+  font-family: var(--font); color: var(--txt);
   min-height: 100vh; transition: background 0.5s ease;
 }
+
 .bg-blobs { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
 .blob { position: absolute; width: 600px; height: 600px; border-radius: 50%; filter: blur(120px); opacity: 0.2; animation: move 35s infinite alternate; }
 .blob-1 { background: #007aff; top: -10%; left: -5%; }
 .blob-2 { background: #34c759; bottom: 5%; right: -5%; }
 @keyframes move { from { transform: translate(0,0); } to { transform: translate(40px, 60px); } }
 
+/* NAVBAR FIJA CORREGIDA */
 .navbar {
-  position: sticky; top: 0; z-index: 1000;
+  position: fixed; 
+  top: 0; 
+  left: 0;
+  right: 0;
+  z-index: 2000;
   padding-top: env(safe-area-inset-top, 20px);
   backdrop-filter: blur(25px) saturate(180%); -webkit-backdrop-filter: blur(25px) saturate(180%);
-  background: rgba(255,255,255,0.4); border-bottom: 0.5px solid rgba(0,0,0,0.05);
+  background: rgba(255,255,255,0.4); 
+  border-bottom: 0.5px solid rgba(0,0,0,0.05);
 }
 body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,255,255,0.1); }
+
 .navbar-inner { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; }
 .nav-t { font-size: 23px; font-weight: 850; letter-spacing: -0.8px; line-height: 1.1; white-space: nowrap;}
 .nav-right-stack { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
@@ -80,7 +91,17 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
 .bounce-click { animation: ios-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); }
 @keyframes ios-bounce { 0%, 100% { transform: scale(1); } 40% { transform: scale(0.75); } }
 
-.page { position: relative; z-index: 1; padding: 12px; max-width: 1200px; margin: 0 auto; padding-bottom: 120px; }
+/* ESPACIADO PARA QUE EL CONTENIDO NO QUEDE BAJO LA NAV */
+.page { 
+  position: relative; 
+  z-index: 1; 
+  padding: 12px; 
+  max-width: 1200px; 
+  margin: 0 auto; 
+  padding-top: calc(100px + env(safe-area-inset-top, 20px)); 
+  padding-bottom: 120px; 
+}
+
 .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 @media (min-width: 600px) { .grid { grid-template-columns: repeat(4, 1fr); gap: 15px; } }
 
@@ -89,7 +110,6 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
   60% { transform: scale(1.05); opacity: 1; }
   100% { transform: scale(1); opacity: 1; }
 }
-
 .card-anim { animation: cardEntrance 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
 
 .card {
@@ -102,18 +122,6 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
     display: grid; grid-template-rows: 1fr 1fr;
     width: 100%; height: 100%; min-height: 162px;
     border-radius: 26px; overflow: hidden;
-}
-.sortable-drag { opacity: 1 !important; z-index: 9999 !important; }
-.sortable-drag .card-wobble-wrapper {
-  transform: scale(1.08);
-  box-shadow: 0 35px 70px rgba(0,0,0,0.4);
-  animation: ios-wobble-final 0.25s infinite linear;
-}
-
-@keyframes ios-wobble-final {
-  0% { transform: scale(1.08) rotate(-1.5deg); }
-  50% { transform: scale(1.08) rotate(1.5deg); }
-  100% { transform: scale(1.08) rotate(-1.5deg); }
 }
 
 .card-top { display: flex; align-items: center; justify-content: center; padding: 12px 10px 2px; text-align: center; pointer-events: none; }
@@ -148,25 +156,24 @@ body.dark .navbar { background: rgba(0,0,0,0.3); border-bottom-color: rgba(255,2
 }
 body.dark .test-btn { background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05)); border-color: rgba(255, 255, 255, 0.2); color: #fff; }
 
-/* Popup Liquid Glass */
 .tg-popup {
   position: fixed; 
   bottom: 80px; 
   left: 50%; 
   transform: translateX(-50%) scale(0);
-  transform-origin: bottom center; 
-  width: 85%; 
+  transform-origin: bottom center;
+  width: 85%;
   max-width: 500px;
   min-height: 180px;
   background: rgba(255, 255, 255, 0.03); 
   backdrop-filter: blur(30px) saturate(150%); -webkit-backdrop-filter: blur(30px) saturate(150%);
-  border: 1.5px solid rgba(255, 255, 255, 0.15); 
+  border: 1.5px solid rgba(255, 255, 255, 0.15);
   padding: 30px; border-radius: 40px;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px;
   z-index: 9999;
   box-shadow: 0 25px 50px rgba(0,0,0,0.15);
   opacity: 0; 
-  transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1); 
+  transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
   pointer-events: none;
 }
 .tg-popup.show { transform: translateX(-50%) scale(1); opacity: 1; pointer-events: auto; }
@@ -181,9 +188,13 @@ body.dark .test-btn { background: linear-gradient(135deg, rgba(255, 255, 255, 0.
 </head>
 <body>
 <div class="bg-blobs"><div class="blob blob-1"></div><div class="blob blob-2"></div></div>
+
 <nav class="navbar">
   <div class="navbar-inner">
-    <div class="nav-title-container"><div class="nav-t">Monitor de Stock</div><div class="nav-t">Mercado Americano</div></div>
+    <div class="nav-title-container">
+        <div class="nav-t">Monitor de Stock</div>
+        <div class="nav-t">Mercado Americano</div>
+    </div>
     <div class="nav-right-stack">
         <div class="nav-btns-row">
             <button class="refresh-btn" onclick="manualRefresh(this)">
@@ -198,7 +209,9 @@ body.dark .test-btn { background: linear-gradient(135deg, rgba(255, 255, 255, 0.
   </div>
 </nav>
 
-<div class="page"><div class="grid" id="grid"></div></div>
+<div class="page">
+    <div class="grid" id="grid"></div>
+</div>
 
 <footer class="test-footer">
     <button class="test-btn" onclick="testTelegram()">
@@ -250,7 +263,6 @@ const PRODUCTS = [
 let state = {}; let alerts = {};
 let shouldAnimate = false;
 
-// TUS CREDENCIALES EXACTAS RECUPERADAS
 const TG_TOKEN = "8287364225:AAHcJQh1Ms3fK13jrTwgjbJE1u35SpLQFeo"; 
 const TG_CHAT_ID = "5461350867";
 
@@ -300,23 +312,14 @@ window.testTelegram = async () => {
       if(response.ok) {
           showTelegramPopup();
           await updateDoc(DBREF, { last_manual_summary: Date.now() });
-      } else {
-          console.error("Error en API de Telegram:", await response.text());
       }
-  } catch(e) { 
-      console.error("Error de conexión:", e); 
-  }
+  } catch(e) { console.error(e); }
 };
 
 function showTelegramPopup() {
   const popup = document.getElementById("telegramPopup");
   popup.classList.add("show");
-  setTimeout(hideTelegramPopup, 3500);
-}
-
-function hideTelegramPopup() {
-  const popup = document.getElementById("telegramPopup");
-  popup.classList.remove("show");
+  setTimeout(() => popup.classList.remove("show"), 3500);
 }
 
 window.toggleTheme = () => {
