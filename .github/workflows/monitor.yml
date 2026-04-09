@@ -2,7 +2,14 @@ name: Monitor Stock Mercado Americano
 
 on:
   schedule:
-    - cron: '*/5 * * * *' 
+    # LUNES A VIERNES: Rango de alta frecuencia (9:00 AM a 4:59 PM CLT / 13:00 a 20:59 UTC)
+    - cron: '*/5 13-20 * * 1-5'
+    # LUNES A VIERNES: Horas específicas de la madrugada (2 AM, 5 AM, 8 AM CLT / 6, 9, 12 UTC)
+    - cron: '0 6,9,12 * * 1-5'
+    # LUNES A VIERNES: Fuera de horario de oficina (Cada 1 hora entre las 5 PM y 1 AM CLT)
+    - cron: '0 0-5,21-23 * * 1-5'
+    # SÁBADOS Y DOMINGOS: Cada 2 horas durante todo el día
+    - cron: '0 */2 * * 0,6'
   workflow_dispatch: 
 
 jobs:
@@ -27,6 +34,6 @@ jobs:
           TG_CHAT_ID: ${{ secrets.TG_CHAT_ID }}
         run: |
           python monitor.py
-          echo "Intervalo de 30s..."
+          echo "Esperando 30s para segunda ráfaga..."
           sleep 30
           python monitor.py
