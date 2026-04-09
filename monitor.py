@@ -5,6 +5,8 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from datetime import datetime
 import re
+import random
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 # --- CONFIGURACIÓN DE SEGURIDAD (FIREBASE) ---
@@ -71,27 +73,43 @@ PRODUCTS = [
 ]
 
 def fetch_product_status(p, old_stocks):
-    headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'}
+    # ANTI-CACHE: Agregamos un parámetro aleatorio para forzar la actualización del servidor
+    cache_buster = f"{p['url']}?v={random.randint(1, 999999)}"
+    
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+    }
+    
     try:
-        res = requests.get(p['url'], headers=headers, timeout=15)
+        res = requests.get(cache_buster, headers=headers, timeout=15)
         html = res.text
-        status = "unavailable"
         
-        stock_match = re.search(r'product-stock__text-exact">(\d+)\s*unidades', html)
-        if stock_match:
-            cantidad = int(stock_match.group(1))
-            status = "available" if cantidad > 0 else "unavailable"
-        elif "product-message__title" in html and "Agotado" in html:
+        # PRIORIDAD 1: El dato que encontraste en la inspección (data-label="out-of-stock")
+        if 'data-label="out-of-stock"' in html:
             status = "unavailable"
+        # PRIORIDAD 2: El span que dice Agotado dentro de la etiqueta product-stock
+        elif re.search(r'product-stock.*?>\s*<span>Agotado</span>', html, re.IGNORECASE | re.DOTALL):
+            status = "unavailable"
+        # PRIORIDAD 3: Detección por conteo de unidades (si existe)
         else:
-            status = "available" if "schema.org/InStock" in html else "unavailable"
+            stock_match = re.search(r'product-stock__text-exact">(\d+)\s*unidades', html)
+            if stock_match:
+                cantidad = int(stock_match.group(1))
+                status = "available" if cantidad > 0 else "unavailable"
+            else:
+                # Si no hay rastro de "Agotado", verificamos si está InStock en el schema
+                status = "available" if "schema.org/InStock" in html else "unavailable"
             
         return p['id'], status, p['name'], p['url']
     except Exception:
+        # Si falla la conexión, mantenemos el estado previo para no alterar el monitor
         return p['id'], old_stocks.get(p['id'], "unavailable"), p['name'], p['url']
 
 def check_stock():
-    print(f"--- Escaneo Paralelo: {datetime.now().strftime('%H:%M:%S')} ---")
+    print(f"--- Escaneo Paralelo (Anti-Caché): {datetime.now().strftime('%H:%M:%S')} ---")
     try:
         doc = doc_ref.get()
         data = doc.to_dict() if doc.exists else {}
@@ -99,12 +117,15 @@ def check_stock():
         old_stocks = data.get('estados_stock', {})
         new_stocks = {}
 
-        with ThreadPoolExecutor(max_workers=15) as executor:
+        # Aumentamos workers para procesar rápido las 18 peticiones
+        with ThreadPoolExecutor(max_workers=18) as executor:
             results = list(executor.map(lambda p: fetch_product_status(p, old_stocks), PRODUCTS))
 
         for p_id, status, p_name, p_url in results:
             new_stocks[p_id] = status
-            if status == "available" and old_stocks.get(p_id) != "available":
+            
+            # Solo notifica si pasa de Agotado a Disponible
+            if status == "available" and old_stocks.get(p_id) == "unavailable":
                 if alerts.get(p_id) is True:
                     msg = (
                         f"🛍️ <b>¡STOCK DETECTADO!</b>\n"
@@ -117,14 +138,15 @@ def check_stock():
                     send_telegram(msg)
                     print(f"🚀 Notificación enviada: {p_name}")
 
+        # Guardar en Firebase (Esto actualiza tu monitor Liquid Glass al instante)
         doc_ref.set({
             'estados_stock': new_stocks,
             'last_run': datetime.now().isoformat()
         }, merge=True)
-        print("✅ Proceso completado.")
+        print("✅ Monitor actualizado en Firebase.")
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f"❌ Error General: {e}")
 
 if __name__ == "__main__":
     check_stock()
